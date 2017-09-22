@@ -1,0 +1,1118 @@
+FORMAT: 1A
+HOST: https://testbedapp.giftbit.com/papi/v1
+
+# Giftbit API
+Giftbit's API allows you to automatically send digital gift cards as part of your system’s workflow. 
+This document includes a definitive list of endpoints, defined under the 'Reference' section, along with common use cases and code examples. 
+You can also try all of the API calls directly from these documents once you have an `access_token` for your Giftbit Testbed account. 
+To do so simply add your `access_token` to the request authorization header.
+
+## Credentials
+The test calls that can be made from this document are against our Testbed environment. You'll need your `access_token` from your Testbed Giftbit account. 
+If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register/registerGiver" target="_blank">here</a></em>.
+Once you sign-up you'll receive a welcome email containing your unique `access_token`.
+<br><br>
+You will need to contact Giftbit directly for your production `access_token`. 
+Your token must be included in requests either in the “Authorization” header or (URL encoded) as the `access_token` URL
+parameter.
+
+## Environments and URLs
+In addition to our Production environment, Giftbit also has a Testbed environment which is used for integration development.
+There are a few key differences between this testbed and Giftbit’s live site:
+    <ul>
+        <li>All gift emails sent through the testbed will not go to the intended recipient but instead be sent to the email address you provided for your testbed account, allowing you to test the full gifting process safely.</li>
+        <li>Gift emails from testbed all have a header identifying them as test emails.</li>
+        <li>The brands in the testbed marketplace may not be exactly reflective of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list.</li>
+        <li>You will have a different API token for Testbed than for production.</li>
+        <li>All of your account settings are set separately in testbed and production.</li>
+        <li>You have been given a very large initial account balance on your testbed account. We have provided you with a test credit card (no real charges) so you can add more funds, if needed, from your funding dashboard.</li>
+        <li>In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns, but it is not a requirement.</li>
+    </ul>
+
+### Testbed
+<em>https://testbedapp.giftbit.com/papi/v1</em>
+
+### Production 
+<em>https://api.giftbit.com/papi/v1</em>
+
+## Common Use Cases
+Depending on your use case, there are several different options for creating gift offers through the API. 
+Creating and sending a gift offer involves creating a campaign using the `/campaign` endpoint. A campaign
+consists of one or more marketplace gifts, and one or more contacts. If your use case requires delivering the gifts
+via a unique shortlink then you can omit contacts and simply provide a `link_count` in the request.
+<br><br>
+The required marketplace gift(s) in creating a campaign consists of a marketplace gift id and a price in cents. You can use the
+`/marketplace` endpoint to get the id's and allowed prices for the gifts you'd like to include in your campaign. 
+Depending on the marketplace gift some are a fixed price while others have a list or range of prices you can choose from.
+<br><br>
+
+### Sending Predefined Marketplace Gift(s) with Each Offer
+A simple yet popular API use case is to set up a certain gift or choice of gifts that is always used when
+sending campaigns. In this use case, you'd retrieve the ids of the marketplace gifts you want
+manually, choose a valid and desired gift price, and store them in your database or configuration.
+Then, whenever you wish to create a campaign through the API, you'd provide those same predefined gifts and the prices.
+
+### Providing an Interactive Marketplace 
+Providing your users with an interactive marketplace where they can select the gifts they want is another workflow the Giftbit API supports.
+In this type of integration, you'd use the `/marketplace` endpoint to dynamically retrieve Giftbit's full marketplace. The API provides the
+capability to refine results by any combination of price, currency, region, or vendor. It also supports results paging. It is recommended that the results be cached and updated at a
+daily (or less frequent) cadence as they change infrequently.
+
+## Delivery Types
+Giftbit has two delivery types for your gift offers: `GIFTBIT_EMAIL` and `SHORTLINK`. Note that in each case
+the content Giftbit provides to the recipient is the same (the Giftbit email content is the same as the shortlink
+destination web page) so all information around branding, templates, and gift content applies to both delivery
+types. All reporting and statistics are available for both delivery methods. Examples of API calls for both
+delivery methods are provided below.
+
+### Giftbit Email Delivery
+If you have email addresses for your recipients, email delivery is the recommended fastest and most
+reliable delivery method. Giftbit specializes in email deliverability and trusted best practices. We will deliver
+your branded gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
+deliverability issues are made available to you so that you can keep your recipient lists clean and of high
+quality. You must include one or more recipients to send the offer to in your campaign creation request, and
+the `delivery_type` parameter may be omitted or set to `GIFTBIT_EMAIL`.
+
+### Shortlink Delivery (for delivering the gifts yourself)
+In the cases where email based delivery is not appropriate or you do not have email addresses for your
+recipients, you may create a campaign where each gift offer is represented by a unique shortlink. 
+To do so you set the `delivery_type` parameter to `SHORTLINK` and provide either a `link_count` or a list of contacts.
+You can retrieve the links via the `/links` or `/gifts` endpoint which are usually ready within minutes. You can then deliver them yourself to your recipients physically or
+digitally as you see fit for ultimate flexibility. 
+<br><br>
+When using `delivery_type` of `SHORTLINK` and providing contacts, Giftbit does NOT deliver an email to
+those contacts. The ability to provide contacts for shortlink campaigns is so that you can correlate your links
+to given recipients in our system (this correlation is visible anywhere we provide your gift offer history
+information including reports, the web application, and the /gifts endpoint without needing to keep track of it
+in yours. It is up to you to ensure you deliver the correct link to the corresponding contact. Alternatively, when providing just 
+a `link_count` you can retrieve redemption information for each link so it's possible to correlate link redemption information with
+recipients in your system.
+
+## Templates
+Templates allow your gift messages to be richly formatted, and provide a nice separation of responsibility
+between content creators and developers. This is done by allowing the gift content (subject, the message with formatting and
+rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
+without requiring any changes to the API calls themselves when the content
+changes. To get started with templates navigate to the templates section of your account. 
+<br><br>
+Each template will be auto-assigned a unique uppercase short identifier shown in the web interface. This is the 
+id you'll use in the `gift_template` field of the campaign creation request. Note that if you provide a gift template
+then you can omit the message and subject in the request, unless you want to override the template in that particular
+request.
+
+## Giftbit Merchant Platform
+
+
+If you are interested in your own gift card and the Giftbit merchant platform, please visit https://www.giftbit.com/merchants/
+
+If you are already registered for the merchant platform and looking for the API documentation, it is available at https://www.giftbit.com/merchantapi/
+
+
+
+## Authentication [/]
+The Giftbit API uses token-based authentication. How you obtain the token(s) will depend on your use case,
+but the use is the same. You can authenticate in one of two ways when making API calls:
+<ul>
+  <li>Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format.</li>
+  <li>Include the token in “access_token” as a URL parameter. You will need to URL encode your token if using this method.</li>
+</ul>
+You can use the following resources to check that your Testbed credentials are valid.
+
+### authenticate using header [GET /]
++ Request
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+    
++ Response 200
+    + Attributes
+        + username (string) - The username associated with the credentials provided.
+        + displayname (string) - The display name associated with the credentials provided.
+        + info 
+            + code (string) - Status code for the request. Values
+                <ul>
+                    <li>INFO_CREDENTIALS - Credentials are valid.</li>
+                </ul>
+    + Body
+        {
+            "username":"example_merchant@giftbit.com",
+            "displayname":"Example Merchant",
+            "info":
+                {
+                    "code":"INFO_CREDNTIALS",
+                    "name":"Credentials are valid",
+                    "message":"The credentials used are valid and login attempt was successful."
+                }
+        }
+    
++ Response 401
+
+        {
+            "status":401,
+            "text":"Unauthorized"
+        }
+    
+
+### authenticate using access token in parameters [GET /{?access_token}]
++ Parameters 
+    + access_token
+    
++ Response 200
+    + Attributes
+        + username (string) - The username associated with the credentials provided.
+        + displayname (string) - The display name associated with the credentials provided.
+        + info 
+            + code (string) - Status code for the request. Values
+                <ul>
+                    <li>INFO_CREDENTIALS - Credentials are valid.</li>
+                </ul>
+    + Body
+        {
+            "username":"example_merchant@giftbit.com",
+            "displayname":"Example Merchant",
+            "info":
+                {
+                    "code":"INFO_CREDNTIALS",
+                    "name":"Credentials are valid",
+                    "message":"The credentials used are valid and login attempt was successful."
+                }
+        }
+        
++ Response 401
+
+        {
+            "status":401,
+            "text":"Unauthorized"
+        }
+        
+
+## Marketplace [/marketplace]
+The `/marketplace` endpoint is used for retrieving Giftbit's available marketplace gifts. 
+It can be used to provide an interactive marketplace or you can simply use it to retrieve the id's and 
+allowed prices of marketplace gifts you'd like to include in your campaigns.
+
+### list marketplace [GET /marketplace]
++ Parameters
+    + vendor (number, optional) - Limits the results to marketplace gifts belong to the provided vendor.
+    + region (number, optional) - Limits the results to marketplace gifts that available in the provided region.
+    + `max_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value less than the provided value.
+    + `min_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value more than the provided value.
+    + currencyisocode (string, optional) - Limits the results to marketplace gifts matching the provided currency. Options<ul><li>CAD</li><li>USD</li></ul>
+    + limit (number, optional) - Limits the number of results to the provided value. Default value is 20.
+    + offset (number, optional) - Offsets the results by provided value. Used for paging through results. Default value is 0.
+    + long_format (boolean, optional) - Provides additonal information in the results. If true, will also return Vendor and Region as part of the marketplace gift results. Default false.
+    
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+
++ Response 200
+
+    + Attributes
+        + marketplace_gifts
+            + id (number) - A numeric identifier for the gift. This identifier can be used with the campaign object to send gifts.
+            + name (string) - The name of the gift.
+            + description (string) - A description of the gift.
+            + `redemption_instructions` (string) - The redemption instructions that will be presented to the recipient.
+            + `terms_and_conditions` (string) - Terms and conditions associated with the gift.
+            + `image_url`  - The gift's image.
+            + `tax` (string) - The tax code associated with the gift. Possible values: HST, GST, NOTAX, and GSTANDPST.
+            + `vendor` (string) - The vendor associated with the marketplace gift. Only returned if requested with long_format.
+            + `regions` (string) - A list of regions that the marketplace gift is available in. Only returned if requested with long_format.
+            + `prices_in_cents` (string) - A list of values, in cents, that can be chosen when giving this gift. Either prices_in_cents or max_price_in_cents will be defined but not both.
+            + `currencyisocode` (string) - Three digit uppercase currency code that gives the currency of this gift
+            + `max_price_in_cents` (string) - The maximum value that can be chosen when giving this gift. 
+            + `min_price_in_cents` (string) - The minimum value that can be chosen when giving this gift.  min_price_in_cents will always be accompanied by max_price_in_cents.
+        + `number_of_results` (number) - The number of results.
+        + info
+            + code (string) - A status code for the request. Possible values: <ul><li>`INFO_MARKETPLACE_RETRIEVE`</li></ul>
+        + limit (number) - The maximum number of results that can be returned. 
+        + offset (number) - The offset into the results. 
+        + `total_count` (number) - The total number of results that matched request.
+            
+    + Body
+    
+            {
+               "marketplace_gifts":[
+                  {
+                     "id":1,
+                     "name":"Amazon.com Gift Card",
+                     "description":"Available in the US. A gift card that can be used towards any product on amazon.com. This gift is sent in US Currency.",
+                     "redemption_instructions":"To get your Amazon.com gift card code, click Use Gift Now.\r\n\r\nTo redeem your gift card, follow these steps:\r\n\r\n1. Visit www.amazon.com/gc\r\n2. Click Apply to Account and enter the Claim Code when prompted.\r\n3. Gift card funds will be applied automatically to eligible orders during the checkout process.\r\n4. You must pay for any remaining balance on your order with another payment method.\r\n\r\nYour gift card claim code may also be entered when prompted during checkout. To redeem your gift card using the Amazon.com 1-Click® service, first add the gift card funds to Your Account. If you have questions about redeeming your gift card, please visit www.amazon.com/gc-redeem or contact hello@giftbit.com.",
+                     "terms_and_conditions":"Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees.Kiind Inc., doing business as Giftbit, and/or Kiind, Corp, doing business as Giftbit through www.giftbit.com and/or through Giftbit's mobile application(s) and other services.",
+                     "image_url":"https://uploadedimagestestbed.giftbit.com/80/amazon-73636908-1d6b-49ec-81c9-3819b8c6c408.jpg",
+                     "tax":"NOTAX",
+                     "currencyisocode":"USD",
+                     "max_price_in_cents":50000,
+                     "min_price_in_cents":500
+                  }
+               ],
+               "number_of_results":1,
+               "info":{
+                  "code":"INFO_MARKETPLACE_RETRIEVED",
+                  "name":"Marketplace Gifts Retrieved",
+                  "message":"A list of marketplace gifts has been retrieved."
+               },
+               "limit":1,
+               "offset":0,
+               "total_count":48
+            }
+
+### retrieve marketplace gift [GET /marketplace/{id}] 
++ Parameters
+    + id (number, required) - Retrieve a marketplace gift by id.
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Response 200
+    + Attributes
+        + marketplaceGift 
+            + id (number) - A numeric identifier for the gift. This identifier can be used with the campaign object to send gifts.
+            + name (string) - The name of the gift.
+            + description (string) - A description of the gift.
+            + `redemption_instructions` (string) - The redemption instructions that will be presented to the recipient.
+            + `terms_and_conditions` (string) - Terms and conditions associated with the gift.
+            + `image_url` (string) - The gift's image.
+            + `tax` (string) - The tax code associated with the gift. Possible values: HST, GST, NOTAX, and GSTANDPST.
+            + `vendor` (string) - The vendor associated with the marketplace gift.
+            + `regions` (string) - A list of regions that the marketplace gift is available in.
+            + `prices_in_cents` (string) - `A list of values, in cents, that can be chosen when giving this gift. Either prices_in_cents or max_price_in_cents will be defined but not both.`
+            + `currencyisocode` (string) - Three digit uppercase currency code that gives the currency of this gift
+            + `max_price_in_cents` (string) - The maximum value that can be chosen when giving this gift. 
+            + `min_price_in_cents` (string) - `The minimum value that can be chosen when giving this gift.  min_price_in_cents will always be accompanied by max_price_in_cents.`
+        + `number_of_results` (number) - The number of results.
+        + info
+            + code (string) - A status code for the request. Possible values: <ul><li>`INFO_MARKETPLACE_RETRIEVE`</li></ul>
+        + limit (number) - The maximum number of results that can be returned. 
+        + offset (number) - The offset into the results. 
+        + `total_count` (number) - The total number of results that matched request.
+
+    + Body
+
+            {
+              "marketplaceGift": {
+                "id": 1,
+                "name": "Amazon.com Gift Card",
+                "description": "Available in the US. A gift card that can be used towards any product on amazon.com. This gift is sent in US Currency.",
+                "redemption_instructions": "To get your Amazon.com gift card code, click Use Gift Now.\r\n\r\nTo redeem your gift card, follow these steps:\r\n\r\n1. Visit www.amazon.com/gc\r\n2. Click Apply to Account and enter the Claim Code when prompted.\r\n3. Gift card funds will be applied automatically to eligible orders during the checkout process.\r\n4. You must pay for any remaining balance on your order with another payment method.\r\n\r\nYour gift card claim code may also be entered when prompted during checkout. To redeem your gift card using the Amazon.com 1-Click® service, first add the gift card funds to Your Account. If you have questions about redeeming your gift card, please visit www.amazon.com/gc-redeem or contact hello@giftbit.com.",
+                "terms_and_conditions": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees.Kiind Inc., doing business as Giftbit, and/or Kiind, Corp, doing business as Giftbit through www.giftbit.com and/or through Giftbit's mobile application(s) and other services.",
+                "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-73636908-1d6b-49ec-81c9-3819b8c6c408.jpg",
+                "tax": "NOTAX",
+                "currencyisocode": "USD",
+                "vendor": {
+                  "id": 79,
+                  "name": "Amazon",
+                  "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
+                  "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees."
+                },
+                "regions": [
+                  {
+                    "id": 2,
+                    "name": "Across the USA",
+                    "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/card-images/AcrossUSA_224.png"
+                  }
+                ],
+                "max_price_in_cents": 50000,
+                "min_price_in_cents": 500
+              },
+              "info": {
+                "code": "INFO_MARKETPLACE_RETRIEVED",
+                "name": "Marketplace Gifts Retrieved",
+                "message": "A list of marketplace gifts has been retrieved."
+              }
+            }
+
+### list vendors [GET /marketplace/vendors]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+
++ Response
+    + Attributes
+        + vendors 
+            + id (number) - A numeric identifier for the vendor.
+            + name (string) - The name of the vendor.
+            + `image_url` (string) - An image for the vendor.
+            + disclaimer (string) - Terms and conditions.
+        + info
+            + code (string) - Status code. [`INFO_MARKETPLACE_RETRIEVED_VENDORS`]
+    
+    + Body
+
+            {
+              "vendors": [
+                {
+                  "id": 86,
+                  "name": "Amazon.ca",
+                  "image_url": "https://uploadedimagestestbed.giftbit.com/141/amazonca-9cb14cef-8b78-4c15-bfd6-2da41b495ca4.jpg",
+                  "disclaimer": "*Amazon.ca Gift Certificates (\"GCs\") sold by Kiind Inc. DBA Giftbit, an authorized and independent reseller of Amazon.ca Gift Certificates. GCs are redeemable only for eligible products on Amazon.ca. Return policies for products are available on Amazon.ca. Except as required by law, GCs cannot be reloaded, resold, transferred for value, redeemed for cash or applied to any other account. To view a GC balance or for more information about your GC, visit \"Your Account\" on Amazon.ca or contact us at www.amazon.ca/contact-us. GCs cannot be used to purchase other GCs. Amazon is not responsible if a GC is lost, stolen, destroyed or used without permission. For complete terms and conditions, see www.amazon.ca/gc-legal. GCs are issued by Amazon.com.ca, Inc., a Delaware corporation. All Amazon ®, ™ & © are IP of Amazon.com, Inc. or its affiliates. No expiration date or service fees."
+                },
+                {
+                  "id": 79,
+                  "name": "Amazon",
+                  "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
+                  "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees."
+                },
+                {
+                  "id": 131,
+                  "name": "Walmart",
+                  "image_url": "https://uploadedimagestestbed.giftbit.com/226/Walmartlogo-8320ebe1-a5ba-41bb-a5e0-0b388c0d6833.png"
+                }
+              ],
+              "info": {
+                "code": "INFO_MARKETPLACE_RETRIEVED_VENDORS",
+                "name": "Marketplace Vendors Retrieved",
+                "message": "A list of marketplace vendors has been retrieved."
+              }
+            }
+            
+### list regions [GET /marketplace/regions]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Response 200
+    + Attributes
+        + regions 
+            + id (number) - A numeric identifier for the region.
+            + name (string) - The name of the region.
+            + `image_url` (string) - An image for the region.
+        + info
+            + code (string) - Status code. [`INFO_MARKETPLACE_RETRIEVED_REGIONS`]
+    
+    + Body
+            
+            {
+              "regions": [
+                {
+                  "id": 1,
+                  "name": "Across Canada",
+                  "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/card-images/AcrossCanada_224.png"
+                },
+                {
+                  "id": 2,
+                  "name": "Across the USA",
+                  "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/card-images/AcrossUSA_224.png"
+                }
+              ],
+              "info": {
+                "code": "INFO_MARKETPLACE_RETRIEVED_REGIONS",
+                "name": "Marketplace Regions Retrieved",
+                "message": "A list of marketplace regions has been retrieved."
+              }
+            }
+
+
+## Campaign [/campaign]
+A Campaign represents a gift offer to one or more recipients. The campaign includes one or more marketplace gifts that the each recipient can choose from. Included in the returned 
+campaign object is a list of gifts, a list of recipients, the date that the gift offer expires, 
+the status of the campaign, and the fees associated with the campaign.
+
+### create campaign [POST /campaign]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+
+    + Attributes
+        + message: `Example: The gift message!` (string, required) - Gift email message. Required if no supplied template.
+        + subject: `Example: Please enjoy this gift!` (string, required) - Gift email subject. Required if no supplied template.
+        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign.
+        + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, optional) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
+        + `link_count`: `Example: 5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
+        + contacts: `Example: [{"email":"demo@giftbit.com"}]` (required) - A list of contact objects and is required if not providing `link_count`. A contact is a json object defined by fields: 
+            <ul>
+                <li>email (required)</li>
+                <li>firstname (optional)</li>
+                <li>lastname (optional)</li>
+            </ul>
+        + `marketplace_gifts`: `Example: [{"id": 1, "price_in_cents": 1000}]` (required) - A list of marketplace gifts. A marketplace gift is a json object defined by fields: 
+            <ul>
+                <li>id (required) - From the /marketplace endpoint.</li> 
+            
+                <li>price_in_cents (required) - Must be a valid price for that gift. Must either match a value in the marketplace gift's price list or be within the range defined by min_price_in_cents and max_price_in_cents.</li> 
+            </ul>
+        + expiry: `Example: YYYY-MM-dd` (string, required) - The expiry for the order.
+        + id: `Example: abc123` (string, optional) - An identifier for the campaign assigned by the client.
+        
+        
+    + Body 
+        
+            {
+                "message":"Thanks for being such an awesome customer!",
+                "subject":"Please enjoy this gift!",
+                "contacts": [
+                    {
+                        "firstname":"Perry",
+                         "lastname":"Johnson",
+                         "email":"pjohnson@giftbit.com"
+                     },
+                     {
+                        "firstname":"Rita",
+                         "lastname":"Robson",
+                         "email":"rrobson@giftbit.com"
+                     }
+                ],
+                "marketplace_gifts": [
+                    {
+                        "id":1, 
+                        "price_in_cents":1000
+                    }
+                ],
+                "expiry":"2017-01-01",
+                "id":"clientProvidedGiftId_abc123"
+            }
+        
++ Response 200
+    + Attributes
+        + info
+            + code (string) - Status code for request. Possibilities: 
+                <ul>
+                    <li>`INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully</li>
+                    <li>`INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.</li>
+                    <li>`INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.</li>
+                </ul>
+        + campaign
+            + message (string) - The message for the campaign.
+            + subject (string) - The subject for the campaign.
+            + contacts (object) - A list of contacts the campaign is being sent to.
+            + `marketplace_gifts` (object) - A list of marketplace gifts in the campaign.
+            + status (string) - The status of the campaign. Possibilities:
+                <ul>
+                    <li>API_CREATING - The campaign is in the process of being created.</li>
+                    <li>AWAITING_FUNDS - The campaign has not yet been delivered to the recipient(s)
+                        because of insufficient funds in your Giftbit account. You do NOT need to
+                        resend the campaign as soon as you add funds to your account or your pending
+                        funds clear, the campaign will be automatically delivered to your recipients.</li>
+                    <li>CAMPAIGN_CREATED - The campaign has been created. Note the gift emails may still be in the process of being delivered at this point.</li>
+                </ul>
+            + uuid (string) - A unique identifer for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
+            + `delivery_type` (string) - The delivery type of the campaign. Possibilities:
+                <ul>
+                    <li>GIFTBIT_EMAIL</li>
+                    <li>SHORTLINK</li>
+                </ul>
+            + expiry (string) - The campaigns claim before date. After this date, recipients will not be able to redeem their gifts and the credits for any unclaimed gifts will be returned to your account. Format `YYYY-MM-DD`.
+            + `contact_success_count` (number) - The number of contacts added successfully. 
+            + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
+        + fees - Depending on your giftbit account some of the fields returned in the fees section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
+        + id (string) - The client provided id for the campaign.  
+    + Body 
+    
+            {
+               "info":{
+                  "code":"INFO_CAMPAIGN_CREATED",
+                  "name":"Campaign Created",
+                  "message":"Campaign creation has begun."
+               },
+               "status":200,
+               "campaign":{
+                  "message":"Thanks for being such an awesome customer!",
+                  "subject":"Please enjoy this gift!",
+                  "contacts":[
+                     {
+                        "email":"pjhonson@giftbit.com",
+                        "firstname":"Perry",
+                        "added_succesfully":true,
+                        "lastname":"Johnson",
+                        "message":"New contact"
+                     },
+                     {
+                        "email":"rrobson@giftbit.com",
+                        "firstname":"Rita",
+                        "added_succesfully":true,
+                        "lastname":"Robson",
+                        "message":"New contact"
+                     }
+                  ],
+                  "marketplace_gifts":[
+                     {
+                        "price":1000,
+                        "id":1
+                     }
+                  ],
+                  "status":"API_CREATING",
+                  "uuid":"9a405b513c11413aaac593a0c2e1a15d",
+                  "suppress_default_greeting":false,
+                  "delivery_type":"GIFTBIT_EMAIL",
+                  "expiry":"2017-05-01",
+                  "contacts_success_count":2,
+                  "contacts_failure_count":0,
+                  "fees":{
+                     "cost_entries":[
+                        {
+                           "percentage":0,
+                           "fee_type":"PREFUND_GIFT_COST",
+                           "amount_in_cents":2000,
+                           "currency":"USD",
+                           "tax_type":"NOTAX",
+                           "tax_in_cents":0,
+                           "number_of_gifts":2,
+                           "fee_per_gift_in_cents":1000
+                        },
+                        {
+                           "percentage":0.000,
+                           "fee_type":"BREAKAGE_PERCENTAGE",
+                           "amount_in_cents":0,
+                           "currency":"USD",
+                           "tax_type":"NOTAX",
+                           "tax_in_cents":0,
+                           "number_of_gifts":2,
+                           "fee_per_gift_in_cents":0
+                        }
+                     ],
+                     "subtotal_in_cents":2000,
+                     "tax_in_cents":0,
+                     "tax_type":"NOTAX",
+                     "total_in_cents":2000
+                  },
+                  "id":"clientProvidedGiftId_abc123"
+               }
+            }
+        
+
+### retrieve campaign by id or uuid [GET /campaign/{id_or_uuid}]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Parameters
+    + `id_or_uuid`: clientProvidedGiftId_abc123 (required) - The campaign id or uuid. The id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
+    
++ Response 200
+    + Attributes
+        + info
+            + code (string) - Status code for the request. [INFO_CAMPAIGN_RETRIEVED]
+        + campaign (object) - The returned campaign object.
+    + Body
+    
+            {
+               "info":{
+                  "code":"INFO_CAMPAIGN_RETRIEVED",
+                  "name":"Campaign Retrieved",
+                  "message":"A campaign or list of campaigns has been retrieved."
+               },
+               "campaign":{
+                  "message":"Thanks for being such an awesome customer!",
+                  "subject":"Please enjoy this gift!",
+                  "contacts":[
+                     {
+                        "email":"pgibbons@giftbit.com",
+                        "firstname":"Peter",
+                        "lastname":"Gibbons"
+                     },
+                     {
+                        "email":"brobson@giftbit.com",
+                        "firstname":"Bob",
+                        "lastname":"Robson"
+                     }
+                  ],
+                  "marketplace_gifts":[
+                     {
+                        "price":1000,
+                        "id":1
+                     }
+                  ],
+                  "status":"CAMPAIGN_CREATED",
+                  "uuid":"ee0d3f657fb640c987033e63a82e2279",
+                  "suppress_default_greeting":false,
+                  "delivery_type":"GIFTBIT_EMAIL",
+                  "expiry":"2017-05-01",
+                  "fees":{
+                     "cost_entries":[
+                        {
+                           "percentage":0,
+                           "fee_type":"PREFUND_GIFT_COST",
+                           "amount_in_cents":2000,
+                           "currency":"USD",
+                           "tax_type":"NOTAX",
+                           "tax_in_cents":0,
+                           "number_of_gifts":2,
+                           "fee_per_gift_in_cents":1000
+                        },
+                        {
+                           "percentage":0.00,
+                           "fee_type":"BREAKAGE_PERCENTAGE",
+                           "amount_in_cents":0,
+                           "currency":"USD",
+                           "tax_type":"NOTAX",
+                           "tax_in_cents":null,
+                           "number_of_gifts":2,
+                           "fee_per_gift_in_cents":0
+                        }
+                     ],
+                     "subtotal_in_cents":2000,
+                     "tax_in_cents":0,
+                     "tax_type":"NOTAX",
+                     "total_in_cents":2000
+                  },
+                  "id":"clientProvidedGiftId_abc1232"
+               }
+            }
+
+
+
+## Funds [/funds]
+Real-time information on your account funding.
+
+### retrieve funding information [GET /funds] 
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Response 200
+    + Attributes
+        + fundsbycurrency - USD, CAD, PRO (demo credits)
+        + `available_in_cents` (number) - Value, in cents of available funds in your account. This is your purchasing power for new gift campaigns.
+        + `pending_in_cents` (number) - Value, in cents, of funds for your account that have been sent by you but yet fully processed by Giftbit. These will move to available balance once processed.
+        + `reserved_in_cents` (number) - Value, in cents, of funds that are held to cover the cost of outstanding gift offers that have not yet been claimed and are still within the claim before date.
+    + Body
+
+            {
+              "info": {
+                "code": "INFO_FUNDS",
+                "name": "Fund information retrieved",
+                "message": "Your current fund information was retrieved."
+              },
+              "fundsbycurrency": {
+                "USD": {
+                  "available_in_cents": 196525,
+                  "pending_in_cents": 0,
+                  "reserved_in_cents": 41500
+                },
+                "CAD": {
+                  "available_in_cents": 6600,
+                  "pending_in_cents": 0,
+                  "reserved_in_cents": 1000
+                },
+                "PRO": {
+                  "available_in_cents": 0,
+                  "pending_in_cents": 0,
+                  "reserved_in_cents": 0
+                }
+              }
+            }
+
+
+## Gifts [/gifts]
+Detailed information on your sent gift offers.
+
+### list gifts [GET /gifts]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Parameters
+    + uuid (string, optional) - Return the gift with matching uuid.
+    + `campaign_uuid` (string, optional) -​Filter gifts by the campaign with the matching uuid.    
+    + `campaign_id` (string, optional) ​Filter gifts by the campaign with the matching campaign id.
+    + `price_in_cents_greater_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_greater_than` can be used to filter gifts with prices in cents greater than the supplied value.
+    + `price_in_cents_less_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_less_than` can be used to filter gifts with prices in cents less than the supplied value.
+    + `marketplacegift_id` (number, optional) - Filter gifts by the marketplace gift id. Gifts from a gift of choice campaign may not have this value set.
+    + `recipient_name` (string, optional) - Filter gifts by the name, or part of the name of the recipient. The search string must be at least 3 characters long. 
+    + `recipient_email` (string, optional) -​Filter gifts by the email address, or part of the email of the recipient. The search string must be at least 3 characters long.
+    + `delivery_status` (string, optional) - Filter gifts by their delivery status. Delivery status can be one of `UNSENT`, `DELIVERED`, `UNDELIVERABLE`, `TEMPORARILY_UNDELIVERABLE`, `UNSUBSCRIBED`, `COMPLAINT`.
+    + status (string, optional) - Filter gifts by their status. Options: `SENT_AND_REDEEMABLE`, `REDEEMED`, `TO_CHARITY`, `GIVER_CANCELLED`, or `EXPIRED`.
+    + `created_date_greater_than` (string, optional) - Filter gifts by their created date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `created_date_less_than` (string, optional) - Filter gifts by their created date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `delivery_date_greater_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `delivery_date_less_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `redelivery_count_greater_than` (number, optional) - Filter gifts by their redelivery count. 
+    + `redelivery_count_less_than` (number, optional) - Filter gifts by their redelivery count. 
+    + `redeemed_date_greater_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.    
+    + `redeemed_date_less_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
+    + limit (number, optional) - The maximum number of gifts to return at once. Default 20.
+    + offset (number, optional) - The offset of the first gift in the total results. Default 0.
+    + sort (string, optional) - The property you'd like to sort by. Options: `campaign_id`, `price_in_cents`, `marketplacegift_id`, `recipient_name`, `recipient_email`, `delivery_status`, or status.
+    + order (string, optional) - The order to sort by. Options: asc or desc. Default desc.
+
++ Response 200
+    + Attributes
+        + gifts
+            + uuid (string) - A unique identifier for the gift generated by Giftbit.
+            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
+            + `delivery_status` (string) - The delivery status of the gift.
+                <ul>
+                    <li>UNSENT - The gift has been created but is not yet sent.</li>
+                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
+                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
+                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                        caused by attempting to send a gift to an email address that does not exist. We
+                        suggest double-checking the recipient address and changing or removing it for future
+                        campaigns.</li>
+                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        issue to this recipient. This can be caused by issues like a full mailbox for their email
+                        address. While they may eventually get their gift, It is not guaranteed so we suggest
+                        following up with this recipient and resending their gift if necessary via the web
+                        interface or the /gifts API endpoint.</li>
+                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        previous gift offer email. You should remove them from all future campaigns as Giftbit
+                        will return an error if you attempt to send to them again.</li>
+                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        them from all future campaigns as Giftbit will return an error if you attempt to send to
+                        them again.</li>
+                </ul>
+            + status (string) - The status of the gift offer.
+                <ul>
+                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
+                    <li>REDEEMED - The gift offer has been claimed.</li>
+                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
+                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
+                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
+                </ul>
+            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
+            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
+            + `campaign_id` (string) - The id of campaign provided by the client.
+            + `price_in_cents` (number) - The value of the gift offer in cents.
+            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
+            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
+        + `number_of_results` (number) - The number of gifts returned from the request.
+        + limit (number) - The maximum number of gifts to be returned from the request.
+        + offset (number) - The offset into the gifts returned from the request.
+        + `total_count` (number) - The total number of gifts that matched request. These can be paged through using offset and limit.
+        + info
+            + code (string) - Status code of request. [INFO_GIFTS]
+    + Body
+    
+            {
+               "gifts":[
+                  {
+                     "uuid":"d30be501ed2546e580c5c9eaf56633d9",
+                     "campaign_uuid":"8f5835dfb637413793c5d55f8ea95e23",
+                     "delivery_status":"LINKCREATED",
+                     "status":"SENT_AND_REDEEMABLE",
+                     "management_dashboard_link":"http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=8f5835dfb637413793c5d55f8ea95e23&gift_uuid=d30be501ed2546e580c5c9eaf56633d9",
+                     "redelivery_count":0,
+                     "campaign_id":"may11",
+                     "price_in_cents":500,
+                     "marketplacegift_id":"1",
+                     "created_date":"2016-05-11 12:18:25",
+                     "delivery_date":"2016-05-11 12:18:32",
+                     "shortlink":"http://gtbt.co/S6Km75LFeWQ"
+                  }
+               ],
+               "number_of_results":1,
+               "limit":1,
+               "offset":0,
+               "total_count":8355,
+               "info":{
+                  "code":"INFO_GIFTS",
+                  "name":"Gift information retrieved",
+                  "message":"Returned gifts matching your search parameters."
+               },
+               "status":200
+            }
+            
+
+### retrieve gift [GET /gifts/{uuid}]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Parameters
+    + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
+    
++ Response 200
+    + Attributes
+        + gift
+            + uuid (string) - A unique identifier for the gift generated by Giftbit.
+            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
+            + `delivery_status` (string) - The delivery status of the gift.
+                <ul>
+                    <li>UNSENT - The gift has been created but is not yet sent.</li>
+                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
+                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
+                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                        caused by attempting to send a gift to an email address that does not exist. We
+                        suggest double-checking the recipient address and changing or removing it for future
+                        campaigns.</li>
+                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        issue to this recipient. This can be caused by issues like a full mailbox for their email
+                        address. While they may eventually get their gift, It is not guaranteed so we suggest
+                        following up with this recipient and resending their gift if necessary via the web
+                        interface or the /gifts API endpoint.</li>
+                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        previous gift offer email. You should remove them from all future campaigns as Giftbit
+                        will return an error if you attempt to send to them again.</li>
+                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        them from all future campaigns as Giftbit will return an error if you attempt to send to
+                        them again.</li>
+                </ul>
+            + status (string) - The status of the gift offer.
+                <ul>
+                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
+                    <li>REDEEMED - The gift offer has been claimed.</li>
+                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
+                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
+                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
+                </ul>
+            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
+            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
+            + `campaign_id` (string) - The id of campaign provided by the client.
+            + `price_in_cents` (number) - The value of the gift offer in cents.
+            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
+            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
+        + info
+            + code (string) - Status code of request. [INFO_GIFTS]
+    + Body
+        
+            {
+               "gift":{
+                  "uuid":"d30be501ed2546e580c5c9eaf56633d9",
+                  "campaign_uuid":"8f5835dfb637413793c5d55f8ea95e23",
+                  "delivery_status":"LINKCREATED",
+                  "status":"SENT_AND_REDEEMABLE",
+                  "management_dashboard_link":"http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=8f5835dfb637413793c5d55f8ea95e23&gift_uuid=d30be501ed2546e580c5c9eaf56633d9",
+                  "redelivery_count":0,
+                  "campaign_id":"may11",
+                  "price_in_cents":500,
+                  "marketplacegift_id":"1",
+                  "created_date":"2016-05-11 12:18:25",
+                  "delivery_date":"2016-05-11 12:18:32",
+                  "shortlink":"http://gtbt.co/S6Km75LFeWQ"
+               },
+               "info":{
+                  "code":"INFO_GIFTS",
+                  "name":"Gift information retrieved",
+                  "message":"Returned gifts matching your search parameters."
+               },
+               "status":200
+            }
+            
+            
+
+            
+### resend gift [PUT /gifts/{uuid}]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
+    + Attributes
+        + resend: true (boolean, required)
+            
++ Parameters
+    + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
+    
+    
++ Response 200
+    + Attributes
+        + gift
+            + uuid (string) - A unique identifier for the gift generated by Giftbit.
+            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
+            + `delivery_status` (string) - The delivery status of the gift.
+                <ul>
+                    <li>UNSENT - The gift has been created but is not yet sent.</li>
+                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
+                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
+                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                        caused by attempting to send a gift to an email address that does not exist. We
+                        suggest double-checking the recipient address and changing or removing it for future
+                        campaigns.</li>
+                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        issue to this recipient. This can be caused by issues like a full mailbox for their email
+                        address. While they may eventually get their gift, It is not guaranteed so we suggest
+                        following up with this recipient and resending their gift if necessary via the web
+                        interface or the /gifts API endpoint.</li>
+                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        previous gift offer email. You should remove them from all future campaigns as Giftbit
+                        will return an error if you attempt to send to them again.</li>
+                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        them from all future campaigns as Giftbit will return an error if you attempt to send to
+                        them again.</li>
+                </ul>
+            + status (string) - The status of the gift offer.
+                <ul>
+                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
+                    <li>REDEEMED - The gift offer has been claimed.</li>
+                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
+                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
+                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
+                </ul>
+            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
+            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
+            + `campaign_id` (string) - The id of campaign provided by the client.
+            + `price_in_cents` (number) - The value of the gift offer in cents.
+            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
+            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
+        + info
+            + code (string) - Status code of request. [INFO_GIFTS_RESENT]
+    + Body
+
+            {
+               "gift":{
+                  "uuid":"7e0ef82bc386493498f145578268f1b2",
+                  "campaign_uuid":"f11712f1102248ea94c47bdd3ed95690",
+                  "delivery_status":"DELIVERED",
+                  "status":"SENT_AND_REDEEMABLE",
+                  "management_dashboard_link":"http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=f11712f1102248ea94c47bdd3ed95690&gift_uuid=7e0ef82bc386493498f145578268f1b2",
+                  "redelivery_count":1,
+                  "recipient_email":"tim+1@giftbit.com",
+                  "recipient_name":"tim1",
+                  "price_in_cents":500,
+                  "marketplacegift_id":"1",
+                  "created_date":"2016-05-11 14:18:44",
+                  "delivery_date":"2016-05-11 14:18:47"
+               },
+               "info":{
+                  "code":"INFO_GIFTS_RESENT",
+                  "name":"Gift resent",
+                  "message":"The gift has been resent."
+               },
+               "status":200
+            }
+
+### cancel gift [DELETE /gifts/{uuid}]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Parameters
+    + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
+    
++ Response 200
+    + Attributes
+        + gift
+            + uuid (string) - A unique identifier for the gift generated by Giftbit.
+            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
+            + `delivery_status` (string) - The delivery status of the gift.
+                <ul>
+                    <li>UNSENT - The gift has been created but is not yet sent.</li>
+                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
+                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
+                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                        caused by attempting to send a gift to an email address that does not exist. We
+                        suggest double-checking the recipient address and changing or removing it for future
+                        campaigns.</li>
+                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        issue to this recipient. This can be caused by issues like a full mailbox for their email
+                        address. While they may eventually get their gift, It is not guaranteed so we suggest
+                        following up with this recipient and resending their gift if necessary via the web
+                        interface or the /gifts API endpoint.</li>
+                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        previous gift offer email. You should remove them from all future campaigns as Giftbit
+                        will return an error if you attempt to send to them again.</li>
+                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        them from all future campaigns as Giftbit will return an error if you attempt to send to
+                        them again.</li>
+                </ul>
+            + status (string) - The status of the gift offer.
+                <ul>
+                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
+                    <li>REDEEMED - The gift offer has been claimed.</li>
+                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
+                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
+                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
+                </ul>
+            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
+            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
+            + `campaign_id` (string) - The id of campaign provided by the client.
+            + `price_in_cents` (number) - The value of the gift offer in cents.
+            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
+            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
+        + info
+            + code (string) - Status code of request. [INFO_GIFTS_CANCELED]
+    + Body
+    
+            {
+               "gift":{
+                  "uuid":"d30be501ed2546e580c5c9eaf56633d9",
+                  "campaign_uuid":"8f5835dfb637413793c5d55f8ea95e23",
+                  "delivery_status":"LINKCREATED",
+                  "status":"GIVER_CANCELLED",
+                  "management_dashboard_link":"http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=8f5835dfb637413793c5d55f8ea95e23&gift_uuid=d30be501ed2546e580c5c9eaf56633d9",
+                  "redelivery_count":0,
+                  "campaign_id":"may11",
+                  "price_in_cents":500,
+                  "marketplacegift_id":"1",
+                  "created_date":"2016-05-11 12:18:25",
+                  "delivery_date":"2016-05-11 12:18:32",
+                  "shortlink":"http://gtbt.co/S6Km75LFeWQ"
+               },
+               "info":{
+                  "code":"INFO_GIFTS_CANCELED",
+                  "name":"Gift canceled",
+                  "message":"The gift has been canceled."
+               },
+               "status":200
+            }
+
+## Links [/links]
+Retrieve shortlinks for your link based gift offer campaigns
+
+### retrieve shortlinks by id or uuid [GET /links/{id_or_uuid}{?limit}{?offset}]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+            
++ Parameter
+    + `id_or_uuid` (number, required) - The client provided id of the campaign or the uuid assigned by Giftbit.
+    + limit (number, optional) - Limits the number of results to the provided value. The default value is 50.
+    + offset (number, optional) - Offsets the results by provided value. Used for paging through results. The default value is 0.
+            
++ Response 200
+    + Attributes
+        + info
+            + code (string) - A status code for the links.
+                <ul>
+                    <li>INFO_LINKS - The links are ready.</li>
+                    <li>INFO_LINKS_GENERATION_IN_PROGRESS - The links are still being created.</li>
+                    <li>ERROR_LINKS_CAMPAIGN_INACTIVE - The claim before date on the gift offer has passed.</li>
+                    <li>ERROR_LINKS_BAD_CAMPAIGN - Invalid campaign id or the campaign was found but is not a SHORTLINK campaign.</li>                
+                </ul>
+        + shortlinks
+            + number (number) - Link number.
+            + shortlink (string) - The gift offers url.
+        + `number_of_results` (number) - The total number of returned links.
+        + limit (number) - The number of links returned.
+        + offset (number) - The offset into the matched results.
+        + `total_count` (number) - The total number of links.
+        
+    + Body
+    
+
+            {
+              "info": {
+                "code": "INFO_LINKS",
+                "name": "Link information retrieved",
+                "message": "Returned links for requested Campaign"
+              },
+              "shortlinks": [
+                {
+                  "number": 1,
+                  "shortlink": "http://gtbt.co/CayUS76pqqP"
+                },
+                {
+                  "number": 2,
+                  "shortlink": "http://gtbt.co/PX4KwQW9Ggf"
+                }
+              ],
+              "number_of_results": 2,
+              "limit": 2,
+              "offset": 0,
+              "total_count": 100
+            }
+            
++ Response 200
+    + Body
+    
+            {
+               "info":{
+                  "code":"INFO_LINKS_GENERATION_IN_PROGRESS",
+                  "name":"Links have not yet completed generating; request again in 5 minutes",
+                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
+               }
+            }
