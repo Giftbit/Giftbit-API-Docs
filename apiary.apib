@@ -2,38 +2,35 @@ FORMAT: 1A
 HOST: https://testbedapp.giftbit.com/papi/v1
 
 # Giftbit API
-Giftbit's API allows you to automatically send digital gift cards as part of your system’s workflow. 
-This document includes a definitive list of endpoints, defined under the 'Reference' section, along with common use cases and code examples. 
-You can also try all of the API calls directly from these documents once you have an `access_token` for your Giftbit Testbed account. 
-To do so simply add your `access_token` to the request authorization header.
+Giftbit's RESTFul API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow. 
+This document includes a definitive list of endpoints, defined under the 'Reference' section, along with common use cases, error code reference, and code examples. 
 
-## Credentials
-The test calls that can be made from this document are against our Testbed environment. You'll need your `access_token` from your Testbed Giftbit account. 
-If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register/registerGiver" target="_blank">here</a></em>.
-Once you sign-up you'll receive a welcome email containing your unique `access_token`.
-<br><br>
-You will need to contact Giftbit directly for your production `access_token`. 
-Your token must be included in requests either in the “Authorization” header or (URL encoded) as the `access_token` URL
-parameter.
+You can try all of the API calls directly from this interactive document (or your preferred REST client) with  an `access_token` from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
+Once you sign-up you'll receive a welcome email containing everything you need to create an `access_token` and get going right away.
 
 ## Environments and URLs
-In addition to our Production environment, Giftbit also has a Testbed environment which is used for integration development.
-There are a few key differences between this testbed and Giftbit’s live site:
-    <ul>
-        <li>All gift emails sent through the testbed will not go to the intended recipient but instead be sent to the email address you provided for your testbed account, allowing you to test the full gifting process safely.</li>
-        <li>Gift emails from testbed all have a header identifying them as test emails.</li>
-        <li>The brands in the testbed marketplace may not be exactly reflective of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list.</li>
-        <li>You will have a different API token for Testbed than for production.</li>
-        <li>All of your account settings are set separately in testbed and production.</li>
-        <li>You have been given a very large initial account balance on your testbed account. We have provided you with a test credit card (no real charges) so you can add more funds, if needed, from your funding dashboard.</li>
-        <li>In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns, but it is not a requirement.</li>
-    </ul>
 
-### Testbed
-<em>https://testbedapp.giftbit.com/papi/v1</em>
+### Testbed API root
+<em>`https://testbedapp.giftbit.com/papi/v1`</em>
 
-### Production 
-<em>https://api.giftbit.com/papi/v1</em>
+ <em><a href="https://testbedapp.giftbit.com/register" target="_blank">Sign up for testbed</a></em> and get building right away.
+
+### Production API root
+<em>`https://api.giftbit.com/papi/v1`</em>
+
+Contact the Giftbit API support team at testbed@giftbit.com when you are ready for production access.
+
+### Environment differences
+There are a few key differences between Giftbit’s Testbed and production APIs designed to make building and testing your integration as easy and safe as possible:
+* All gift emails sent through Testbed will not go to the specified recipient email but instead be sent to the email address you provided for your testbed account signup, allowing you to test the full gifting process safely.
+* Gift emails from Testbed all have a header identifying them as test emails.
+* The brands in the testbed marketplace are not reflective of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list.
+* You will have a different API token for Testbed and production.
+* All of your account settings are set separately in testbed and production.
+* To encourage continuous integration testing against our Testbed API, you will be given a very large initial account balance on your Testbed account. A test credit card (no real charges) will also be attached to the Testbed account so you can add more funds, if needed, from your funding dashboard.
+* In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns, but it is not a requirement.
+    
+
 
 ## Common Use Cases
 Depending on your use case, there are several different options for creating gift offers through the API. 
@@ -42,13 +39,13 @@ consists of one or more marketplace gifts, and one or more contacts. If your use
 via a unique shortlink then you can omit contacts and simply provide a `link_count` in the request.
 <br><br>
 The required marketplace gift(s) in creating a campaign consists of a marketplace gift id and a price in cents. You can use the
-`/marketplace` endpoint to get the id's and allowed prices for the gifts you'd like to include in your campaign. 
+`/marketplace` endpoint to get the `ids` and allowed prices for the gifts you'd like to include in your campaign. 
 Depending on the marketplace gift some are a fixed price while others have a list or range of prices you can choose from.
 <br><br>
 
 ### Sending Predefined Marketplace Gift(s) with Each Offer
 A simple yet popular API use case is to set up a certain gift or choice of gifts that is always used when
-sending campaigns. In this use case, you'd retrieve the ids of the marketplace gifts you want
+sending campaigns. In this use case, you'd retrieve the `ids` of the marketplace gifts you want
 manually, choose a valid and desired gift price, and store them in your database or configuration.
 Then, whenever you wish to create a campaign through the API, you'd provide those same predefined gifts and the prices.
 
@@ -100,20 +97,15 @@ id you'll use in the `gift_template` field of the campaign creation request. Not
 then you can omit the message and subject in the request, unless you want to override the template in that particular
 request.
 
-## Giftbit Merchant Platform
-
-
-If you are interested in your own gift card and the Giftbit merchant platform, please visit https://www.giftbit.com/merchants/
-
-If you are already registered for the merchant platform and looking for the API documentation, it is available at https://www.giftbit.com/merchantapi/
+## HTTP Success and Error codes
+Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.  This section gives details on the response codes and recommended actions.
 
 
 
 ## Authentication [/]
-The Giftbit API uses token-based authentication. How you obtain the token(s) will depend on your use case,
-but the use is the same. You can authenticate in one of two ways when making API calls:
+You can authenticate in one of two ways when making API calls:
 <ul>
-  <li>Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format.</li>
+  <li>Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format and it is recommended.</li>
   <li>Include the token in “access_token” as a URL parameter. You will need to URL encode your token if using this method.</li>
 </ul>
 You can use the following resources to check that your Testbed credentials are valid.
@@ -130,20 +122,19 @@ You can use the following resources to check that your Testbed credentials are v
         + displayname (string) - The display name associated with the credentials provided.
         + info 
             + code (string) - Status code for the request. Values
-                <ul>
-                    <li>INFO_CREDENTIALS - Credentials are valid.</li>
-                </ul>
-    + Body
-        {
-            "username":"example_merchant@giftbit.com",
-            "displayname":"Example Merchant",
-            "info":
+                   INFO_CREDENTIALS - Credentials are valid.
+               
+            + Body
                 {
-                    "code":"INFO_CREDNTIALS",
-                    "name":"Credentials are valid",
-                    "message":"The credentials used are valid and login attempt was successful."
+                    "username":"example_merchant@giftbit.com",
+                    "displayname":"Example Merchant",
+                    "info":
+                        {
+                            "code":"INFO_CREDNTIALS",
+                            "name":"Credentials are valid",
+                            "message":"The credentials used are valid and login attempt was successful."
+                        }
                 }
-        }
     
 + Response 401
 
@@ -163,20 +154,18 @@ You can use the following resources to check that your Testbed credentials are v
         + displayname (string) - The display name associated with the credentials provided.
         + info 
             + code (string) - Status code for the request. Values
-                <ul>
-                    <li>INFO_CREDENTIALS - Credentials are valid.</li>
-                </ul>
-    + Body
-        {
-            "username":"example_merchant@giftbit.com",
-            "displayname":"Example Merchant",
-            "info":
+                    INFO_CREDENTIALS - Credentials are valid.
+            + Body
                 {
-                    "code":"INFO_CREDNTIALS",
-                    "name":"Credentials are valid",
-                    "message":"The credentials used are valid and login attempt was successful."
+                    "username":"example_merchant@giftbit.com",
+                    "displayname":"Example Merchant",
+                    "info":
+                        {
+                            "code":"INFO_CREDNTIALS",
+                            "name":"Credentials are valid",
+                            "message":"The credentials used are valid and login attempt was successful."
+                        }
                 }
-        }
         
 + Response 401
 
@@ -188,8 +177,8 @@ You can use the following resources to check that your Testbed credentials are v
 
 ## Marketplace [/marketplace]
 The `/marketplace` endpoint is used for retrieving Giftbit's available marketplace gifts. 
-It can be used to provide an interactive marketplace or you can simply use it to retrieve the id's and 
-allowed prices of marketplace gifts you'd like to include in your campaigns.
+It can be used to provide an interactive marketplace or you can simply use it to retrieve the `id`'s and 
+allowed prices of marketplace gifts you'd like to include in your campaigns.  Note that the `id`s are environment specific (Testbed `id`s will not work in production and vice versa)
 
 ### list marketplace [GET /marketplace]
 + Parameters
@@ -411,9 +400,9 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.
 
 
 ## Campaign [/campaign]
-A Campaign represents a gift offer to one or more recipients. The campaign includes one or more marketplace gifts that the each recipient can choose from. Included in the returned 
-campaign object is a list of gifts, a list of recipients, the date that the gift offer expires, 
-the status of the campaign, and the fees associated with the campaign.
+The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more marketplace gifts that the each recipient can choose from.
+
+Carefully note the potential 200 success responses and 400 error responses in the create campaign `POST` reference to ensure your code handles them appropriately.
 
 ### create campaign [POST /campaign]
 + Request (application/json)
@@ -422,11 +411,11 @@ the status of the campaign, and the fees associated with the campaign.
             Authorization: Bearer YOUR_ACCESS_TOKEN
 
     + Attributes
-        + message: `Example: The gift message!` (string, required) - Gift email message. Required if no supplied template.
-        + subject: `Example: Please enjoy this gift!` (string, required) - Gift email subject. Required if no supplied template.
+        + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
+        + subject: `Example: Please enjoy this gift!` (string, optional) - Gift email subject. Required if no supplied template.
         + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign.
         + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, optional) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
-        + `link_count`: `Example: 5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
+        + `link_count`: `5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
         + contacts: `Example: [{"email":"demo@giftbit.com"}]` (required) - A list of contact objects and is required if not providing `link_count`. A contact is a json object defined by fields: 
             <ul>
                 <li>email (required)</li>
