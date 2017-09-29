@@ -100,12 +100,12 @@ request.
 ## HTTP Success and Error codes
 Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.  ONLY an HTTP status of 200 means the request was successful.  This section gives details on the response codes and recommended actions.
 
-#### Success Response
+### Success Responses
 
-**200:**  Success.  See the reference section below for success responses for each endpoint.  
+**200:**  Success.  See the reference section for success response formats for each endpoint.  
 
-#### Error Responses
-All non 200 responses should be treated as an error and either retried, or the request fixed and then retried.  This section details the different potential non 200 responses. To assist with your programattic error handling and troubleshooting, all error responses follow the following JSON format.
+### Error Responses
+All non 200 responses should be treated as an error and either retried, or the request fixed and then retried.  This section details the different potential non 200 responses. To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
 
 ```
 {
@@ -118,10 +118,10 @@ All non 200 responses should be treated as an error and either retried, or the r
 }
 ```
 
-* "code": an enum style error code that rewpresents the problem and will not change.
-* "name": a human readable error name
+* "code": an enum style error code that represents the problem and will not change.
+* "name": a human readable error name.
 * "message": request specific information about the error.
-* "status": an integer that matches the http status code returned
+* "status": an integer that matches the http status code returned.
 
 Example:
 
@@ -138,14 +138,14 @@ Example:
 
 ### Error response codes
 
-**400:** Error due to a malformed request such as broken JSON or invalid formatting on strict fields such as email or dates
+**400:** Error due to a malformed request such as broken JSON or invalid formatting on strict fields such as email or dates.  Requires fixing up the request body.
 
 
-**401/403:** An authentication or authorization failure.  Generally related to a missing or invalid `access_token`
+**401/403:** An authentication or authorization failure.  Generally related to a missing or invalid `access_token`.  Ensure you are authenticating correctly.
 
-***422:*** The request is formatted correctly but one or more arguments are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand. 
+***422:*** The request is formatted correctly but one or more arguments are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
 
-***429:*** Too many requests.  The API allows you to make 4 requests per second.  Retry your request with a backoff delay.
+***429:*** Too many requests.  The API allows you to make 4 requests per second.  Retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for `POST` requests to the `/campaign` endpoint.
 
 ***5xx:*** An unexpected error on the Giftbit side.  Retry the request, and if failures persist contact support.  Note that the response body format in the 5xx case may not match the common error response format described.
 
@@ -187,7 +187,11 @@ You can use the following resources to check that your Testbed credentials are v
 
         {
             "status":401,
-            "text":"Unauthorized"
+            "error":{
+                "code": "ERROR_UNAUTHORIZED",
+                "name": "Unauthorized",
+                "message": "Access Token missing or invalid"
+            }
         }
     
 
@@ -218,7 +222,11 @@ You can use the following resources to check that your Testbed credentials are v
 
         {
             "status":401,
-            "text":"Unauthorized"
+            "error":{
+                "code": "ERROR_UNAUTHORIZED",
+                "name": "Unauthorized",
+                "message": "Access Token missing or invalid"
+            }
         }
         
 
@@ -449,6 +457,9 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.  No
 ## Campaign [/campaign]
 The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more marketplace gifts that the each recipient can choose from.
 
+### Handling network timeouts on creation
+
+If you receive a network timeout or other unexepected reponse (such as a 5xx) when creating a campaign, send the `POST` again using the same `id`.  Giftbit will only ever create one campaign with a given supplied `id`
 
 ### create campaign [POST /campaign]
 + Request (application/json)
@@ -475,7 +486,7 @@ The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents
                 <li>price_in_cents (required) - Must be a valid price for that gift. Must either match a value in the marketplace gift's price list or be within the range defined by min_price_in_cents and max_price_in_cents.</li> 
             </ul>
         + expiry: `Example: YYYY-MM-dd` (string, required) - The expiry for the order.
-        + id: `Example: abc123` (string, optional) - An identifier for the campaign assigned by the client.
+        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.
         
         
     + Body 
