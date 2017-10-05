@@ -98,7 +98,7 @@ then you can omit the message and subject in the request, unless you want to ove
 request.
 
 ## HTTP Success and Error codes
-Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.  ONLY an HTTP status of 200 means the request was successful.  This section gives details on the response codes and recommended actions.
+Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.  ONLY an HTTP status of 200 means the request was successful.  For non 200 reponses, the predicatble response body (described below) will give you details on why the request failed.  We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to assist with troubleshooting. This section gives details on the response codes and recommended actions.
 
 ### Success Responses
 
@@ -138,24 +138,25 @@ Example:
 
 ### Error response codes
 
-**400:** Error due to a malformed request such as broken JSON or invalid formatting on strict fields such as email or dates.  Requires fixing up the request body.
-
+**400:** Error due to a malformed request body such as broken JSON or missing required element.  Requires fixing up the request body.
 
 **401/403:** An authentication or authorization failure.  Generally related to a missing or invalid `access_token`.  Ensure you are authenticating correctly.
 
-***422:*** The request is formatted correctly but one or more arguments are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
+***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
 
 ***429:*** Too many requests.  The API allows you to make 4 requests per second.  Retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for `POST` requests to the `/campaign` endpoint.
 
 ***5xx:*** An unexpected error on the Giftbit side.  Retry the request, and if failures persist contact support.  Note that the response body format in the 5xx case may not match the common error response format described.
 
+### Providing feedback on the API Documentation
+
+The Giftbit team makes heavy use of external APIs ourselves, and we know how frustrating it can be when the documentation is unclear or doesn't match the actual API behaviour.  If you find any such problems with ours, don't hesitate to let us know via api@giftbit.com
+
 ## Authentication [/]
 You can authenticate in one of two ways when making API calls:
-<ul>
-  <li>Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format and it is recommended.</li>
-  <li>Include the token in “access_token” as a URL parameter. You will need to URL encode your token if using this method.</li>
-</ul>
-You can use the following resources to check that your Testbed credentials are valid.
+* Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format and it is recommended.</li>
+* Include the token in “access_token” as a URL parameter. You will need to URL encode your token if using this method.
+
 
 ### authenticate using header [GET /]
 + Request
@@ -232,7 +233,7 @@ You can use the following resources to check that your Testbed credentials are v
 
 ## Marketplace [/marketplace]
 The `/marketplace` endpoint is used for retrieving Giftbit's available marketplace gifts. 
-It can be used to provide an interactive marketplace or you can simply use it to retrieve the `id`'s and 
+It can be used to provide an interactive marketplace or you can simply use it to retrieve the `id`s and 
 allowed prices of marketplace gifts you'd like to include in your campaigns.  Note that the `id`s are environment specific (Testbed `id`s will not work in production and vice versa)
 
 ### list marketplace [GET /marketplace]
@@ -377,7 +378,7 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.  No
 
             Authorization: Bearer YOUR_ACCESS_TOKEN
 
-+ Response
++ Response 200
     + Attributes
         + vendors 
             + id (number) - A numeric identifier for the vendor.
@@ -459,7 +460,7 @@ The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents
 
 ### Handling network timeouts on creation
 
-If you receive a network timeout or other unexepected reponse (such as a 5xx) when creating a campaign, send the `POST` again using the same `id`.  Giftbit will only ever create one campaign with a given supplied `id`
+If you receive a network timeout or other unexepected reponse (such as a 5xx) when creating a campaign, send the `POST` again using the same supplied `id`.  Giftbit will only ever create one campaign with a given supplied `id`. 
 
 ### create campaign [POST /campaign]
 + Request (application/json)
@@ -520,11 +521,10 @@ If you receive a network timeout or other unexepected reponse (such as a 5xx) wh
     + Attributes
         + info
             + code (string) - Status code for request. Possibilities: 
-                <ul>
-                    <li>`INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully</li>
-                    <li>`INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.</li>
-                    <li>`INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.</li>
-                </ul>
+                    `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
+                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
+                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+                
         + campaign
             + message (string) - The message for the campaign.
             + subject (string) - The subject for the campaign.
@@ -622,7 +622,26 @@ If you receive a network timeout or other unexepected reponse (such as a 5xx) wh
                   "id":"clientProvidedGiftId_abc123"
                }
             }
-        
+            
++ Response 422
+    + Attributes
+        + status (number) - the http status code
+        + error 
+            + code (string) - An enum-style error code desribing the reason for failure.
+            + name (string) - human readable error name
+            + message (string) - request context specific error message
+                   
+    + Body
+            
+            {
+                "error": {
+                    "code": "ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT",
+                    "name": "Invalid Marketplace Gift",
+                    "message": "id:216, invalid gift id"
+                },
+                "status": 422
+            }
+ 
 
 ### retrieve campaign by id or uuid [GET /campaign/{id_or_uuid}]
 + Request (application/json)
@@ -750,7 +769,7 @@ Real-time information on your account funding.
 
 
 ## Gifts [/gifts]
-Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers - note that once a gift offer has been claimed by the recipient it cannot be cancelled
+Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient or shortlink when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be cancelled.
 
 ### list gifts [GET /gifts]
 + Request (application/json)
