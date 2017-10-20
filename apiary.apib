@@ -154,7 +154,7 @@ The Giftbit team makes heavy use of external APIs ourselves, and we know how fru
 
 ## Authentication [/]
 You can authenticate in one of two ways when making API calls:
-* Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format and it is recommended.</li>
+* Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format and it is recommended.
 * Include the token in “access_token” as a URL parameter. You will need to URL encode your token if using this method.
 
 
@@ -233,8 +233,12 @@ You can authenticate in one of two ways when making API calls:
 
 ## Marketplace [/marketplace]
 The `/marketplace` endpoint is used for retrieving Giftbit's available marketplace gifts. 
-It can be used to provide an interactive marketplace or you can simply use it to retrieve the `id`s and 
-allowed prices of marketplace gifts you'd like to include in your campaigns.  Note that the `id`s are environment specific (Testbed `id`s will not work in production and vice versa)
+It can be used to provide an interactive marketplace (see below) or you can simply use it to retrieve the `id` and 
+allowed prices of marketplace gifts you'd like to include in your campaigns.  Note that the `ids` are environment specific (Testbed `ids` will not work in production and vice versa)
+
+#### Using Vendors (Brands) to build an elegant interactive marketplace
+To simulate the behaviour of Giftbit's own web application interactive marketplace in your own app or web offering, it is recommended you present brands via the `/marketplace/vendors` 'list vendors' call passing in the allowed choice parameters (price range, region, etc), and then allow drilling down into the individual gift offerings for that brand via a `/marketplace` call with the given `vendor` as a parameter.
+
 
 ### list marketplace [GET /marketplace]
 + Parameters
@@ -242,7 +246,9 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.  No
     + region (number, optional) - Limits the results to marketplace gifts that available in the provided region.
     + `max_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value less than the provided value.
     + `min_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value more than the provided value.
-    + currencyisocode (string, optional) - Limits the results to marketplace gifts matching the provided currency. Options<ul><li>CAD</li><li>USD</li></ul>
+    + currencyisocode (string, optional) - Limits the results to marketplace gifts matching the provided currency. Options:
+        * CAD
+        * USD
     + limit (number, optional) - Limits the number of results to the provided value. Default value is 20.
     + offset (number, optional) - Offsets the results by provided value. Used for paging through results. Default value is 0.
     + long_format (boolean, optional) - Provides additonal information in the results. If true, will also return Vendor and Region as part of the marketplace gift results. Default false.
@@ -272,7 +278,7 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.  No
             + `min_price_in_cents` (string) - The minimum value that can be chosen when giving this gift.  min_price_in_cents will always be accompanied by max_price_in_cents.
         + `number_of_results` (number) - The number of results.
         + info
-            + code (string) - A status code for the request. Possible values: <ul><li>`INFO_MARKETPLACE_RETRIEVE`</li></ul>
+            + code (string) - A status code for the request. Possible values: `INFO_MARKETPLACE_RETRIEVE`
         + limit (number) - The maximum number of results that can be returned. 
         + offset (number) - The offset into the results. 
         + `total_count` (number) - The total number of results that matched request.
@@ -332,7 +338,7 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.  No
             + `min_price_in_cents` (string) - `The minimum value that can be chosen when giving this gift.  min_price_in_cents will always be accompanied by max_price_in_cents.`
         + `number_of_results` (number) - The number of results.
         + info
-            + code (string) - A status code for the request. Possible values: <ul><li>`INFO_MARKETPLACE_RETRIEVE`</li></ul>
+            + code (string) - A status code for the request. Possible values: `INFO_MARKETPLACE_RETRIEVE`
         + limit (number) - The maximum number of results that can be returned. 
         + offset (number) - The offset into the results. 
         + `total_count` (number) - The total number of results that matched request.
@@ -456,7 +462,7 @@ allowed prices of marketplace gifts you'd like to include in your campaigns.  No
 
 
 ## Campaign [/campaign]
-The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more marketplace gifts that the each recipient can choose from.
+The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more marketplace gifts that the each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
 
 ### Handling network timeouts on creation
 
@@ -475,18 +481,13 @@ If you receive a network timeout or other unexepected reponse (such as a 5xx) wh
         + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, optional) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
         + `link_count`: `5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
         + contacts: `Example: [{"email":"demo@giftbit.com"}]` (required) - A list of contact objects and is required if not providing `link_count`. A contact is a json object defined by fields: 
-            <ul>
-                <li>email (required)</li>
-                <li>firstname (optional)</li>
-                <li>lastname (optional)</li>
-            </ul>
-        + `marketplace_gifts`: `Example: [{"id": 1, "price_in_cents": 1000}]` (required) - A list of marketplace gifts. A marketplace gift is a json object defined by fields: 
-            <ul>
-                <li>id (required) - From the /marketplace endpoint.</li> 
-            
-                <li>price_in_cents (required) - Must be a valid price for that gift. Must either match a value in the marketplace gift's price list or be within the range defined by min_price_in_cents and max_price_in_cents.</li> 
-            </ul>
-        + expiry: `Example: YYYY-MM-dd` (string, required) - The expiry for the order.
+                * email (required)
+                * firstname (optional)
+                * lastname (optional)
+        + `marketplace_gifts`: `Example: [{"id": 1, "price_in_cents": 1000}]` (required) - A list of one or more marketplace gifts.  Each recipient gets to choose their gift from this list. A marketplace gift is a json object defined by fields: 
+                * id (required) - From the /marketplace endpoint. 
+                * price_in_cents (required) - Must be a valid price for that gift. Must either match a value in the marketplace gift's price list or be within the range defined by min_price_in_cents and max_price_in_cents. 
+        + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
         + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.
         
         
@@ -531,21 +532,19 @@ If you receive a network timeout or other unexepected reponse (such as a 5xx) wh
             + contacts (object) - A list of contacts the campaign is being sent to.
             + `marketplace_gifts` (object) - A list of marketplace gifts in the campaign.
             + status (string) - The status of the campaign. Possibilities:
-                <ul>
-                    <li>API_CREATING - The campaign is in the process of being created.</li>
-                    <li>AWAITING_FUNDS - The campaign has not yet been delivered to the recipient(s)
+                API_CREATING - The campaign is in the process of being created.
+                AWAITING_FUNDS - The campaign has not yet been delivered to the recipient(s)
                         because of insufficient funds in your Giftbit account. You do NOT need to
                         resend the campaign as soon as you add funds to your account or your pending
-                        funds clear, the campaign will be automatically delivered to your recipients.</li>
-                    <li>CAMPAIGN_CREATED - The campaign has been created. Note the gift emails may still be in the process of being delivered at this point.</li>
-                </ul>
+                        funds clear, the campaign will be automatically delivered to your recipients.
+                CAMPAIGN_CREATED - The campaign has been created. Note the gift emails may still be in the process of being delivered at this point.
             + uuid (string) - A unique identifer for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
             + `delivery_type` (string) - The delivery type of the campaign. Possibilities:
-                <ul>
-                    <li>GIFTBIT_EMAIL</li>
-                    <li>SHORTLINK</li>
-                </ul>
-            + expiry (string) - The campaigns claim before date. After this date, recipients will not be able to redeem their gifts and the credits for any unclaimed gifts will be returned to your account. Format `YYYY-MM-DD`.
+                
+                    GIFTBIT_EMAIL
+                    SHORTLINK
+                
+            + expiry (string) - The campaign's claim before date as described in creation parameters.
             + `contact_success_count` (number) - The number of contacts added successfully. 
             + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
         + fees - Depending on your giftbit account some of the fields returned in the fees section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
@@ -771,6 +770,8 @@ Real-time information on your account funding.
 ## Gifts [/gifts]
 Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient or shortlink when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be cancelled.
 
+All date/time fields are in Pacific Standard Time.
+
 ### list gifts [GET /gifts]
 + Request (application/json)
     + Headers
@@ -794,7 +795,7 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
     + `delivery_date_less_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
     + `redelivery_count_greater_than` (number, optional) - Filter gifts by their redelivery count. 
     + `redelivery_count_less_than` (number, optional) - Filter gifts by their redelivery count. 
-    + `redeemed_date_greater_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.    
+    + `redeemed_date_greater_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
     + `redeemed_date_less_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
     + limit (number, optional) - The maximum number of gifts to return at once. Default 20.
     + offset (number, optional) - The offset of the first gift in the total results. Default 0.
@@ -807,34 +808,32 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
             + uuid (string) - A unique identifier for the gift generated by Giftbit.
             + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
             + `delivery_status` (string) - The delivery status of the gift.
-                <ul>
-                    <li>UNSENT - The gift has been created but is not yet sent.</li>
-                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
-                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
-                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                    UNSENT - The gift has been created but is not yet sent.
+                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
+                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
+                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
                         caused by attempting to send a gift to an email address that does not exist. We
                         suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.</li>
-                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        campaigns.
+                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
                         issue to this recipient. This can be caused by issues like a full mailbox for their email
                         address. While they may eventually get their gift, It is not guaranteed so we suggest
                         following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.</li>
-                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        interface or the /gifts API endpoint.
+                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
                         previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.</li>
-                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        will return an error if you attempt to send to them again.
+                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
                         them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.</li>
-                </ul>
+                        them again.
             + status (string) - The status of the gift offer.
-                <ul>
-                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
-                    <li>REDEEMED - The gift offer has been claimed.</li>
-                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
-                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
-                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
-                </ul>
+                
+                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
+                    REDEEMED - The gift offer has been claimed.
+                    TO_CHARITY - The gift offer has been given to charity.
+                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
+                    EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.
+                
             + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
             + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
             + `campaign_id` (string) - The id of campaign provided by the client.
@@ -894,34 +893,34 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
             + uuid (string) - A unique identifier for the gift generated by Giftbit.
             + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
             + `delivery_status` (string) - The delivery status of the gift.
-                <ul>
-                    <li>UNSENT - The gift has been created but is not yet sent.</li>
-                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
-                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
-                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                
+                    UNSENT - The gift has been created but is not yet sent.
+                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
+                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
+                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
                         caused by attempting to send a gift to an email address that does not exist. We
                         suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.</li>
-                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        campaigns.
+                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
                         issue to this recipient. This can be caused by issues like a full mailbox for their email
                         address. While they may eventually get their gift, It is not guaranteed so we suggest
                         following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.</li>
-                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        interface or the /gifts API endpoint.
+                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
                         previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.</li>
-                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        will return an error if you attempt to send to them again.
+                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
                         them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.</li>
-                </ul>
+                        them again.
+                
             + status (string) - The status of the gift offer.
-                <ul>
-                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
-                    <li>REDEEMED - The gift offer has been claimed.</li>
-                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
-                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
-                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
-                </ul>
+                
+                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
+                    REDEEMED - The gift offer has been claimed.
+                    TO_CHARITY - The gift offer has been given to charity.
+                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
+                    EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.
+                
             + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
             + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
             + `campaign_id` (string) - The id of campaign provided by the client.
@@ -977,34 +976,34 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
             + uuid (string) - A unique identifier for the gift generated by Giftbit.
             + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
             + `delivery_status` (string) - The delivery status of the gift.
-                <ul>
-                    <li>UNSENT - The gift has been created but is not yet sent.</li>
-                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
-                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
-                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                
+                    UNSENT - The gift has been created but is not yet sent.
+                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
+                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
+                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
                         caused by attempting to send a gift to an email address that does not exist. We
                         suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.</li>
-                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        campaigns.
+                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
                         issue to this recipient. This can be caused by issues like a full mailbox for their email
                         address. While they may eventually get their gift, It is not guaranteed so we suggest
                         following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.</li>
-                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        interface or the /gifts API endpoint.
+                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
                         previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.</li>
-                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        will return an error if you attempt to send to them again.
+                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
                         them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.</li>
-                </ul>
+                        them again.
+                
             + status (string) - The status of the gift offer.
-                <ul>
-                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
-                    <li>REDEEMED - The gift offer has been claimed.</li>
-                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
-                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
-                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
-                </ul>
+                
+                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
+                    REDEEMED - The gift offer has been claimed.
+                    TO_CHARITY - The gift offer has been given to charity.
+                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
+                    EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.
+                
             + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
             + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
             + `campaign_id` (string) - The id of campaign provided by the client.
@@ -1053,34 +1052,34 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
             + uuid (string) - A unique identifier for the gift generated by Giftbit.
             + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
             + `delivery_status` (string) - The delivery status of the gift.
-                <ul>
-                    <li>UNSENT - The gift has been created but is not yet sent.</li>
-                    <li>DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.</li>
-                    <li>LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.</li>
-                    <li>UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
+                
+                    UNSENT - The gift has been created but is not yet sent.
+                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
+                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
+                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
                         caused by attempting to send a gift to an email address that does not exist. We
                         suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.</li>
-                    <li>TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
+                        campaigns.
+                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
                         issue to this recipient. This can be caused by issues like a full mailbox for their email
                         address. While they may eventually get their gift, It is not guaranteed so we suggest
                         following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.</li>
-                    <li>UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
+                        interface or the /gifts API endpoint.
+                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
                         previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.</li>
-                    <li>COMPLAINT - Your recipient marked the gift message as spam. You should remove
+                        will return an error if you attempt to send to them again.
+                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
                         them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.</li>
-                </ul>
+                        them again.
+                
             + status (string) - The status of the gift offer.
-                <ul>
-                    <li>SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.</li>
-                    <li>REDEEMED - The gift offer has been claimed.</li>
-                    <li>TO_CHARITY - The gift offer has been given to charity.</li>
-                    <li>GIVER_CANCELLED - The gift offer was cancelled by the sender.</li>
-                    <li>EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.</li>
-                </ul>
+                
+                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
+                    REDEEMED - The gift offer has been claimed.
+                    TO_CHARITY - The gift offer has been given to charity.
+                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
+                    EXPIRED - The gift offer is expired becuase its claim before passed before it was redeemed.
+                
             + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
             + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
             + `campaign_id` (string) - The id of campaign provided by the client.
@@ -1115,7 +1114,7 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
             }
 
 ## Links [/links]
-Retrieve shortlinks for your link based gift offer campaigns
+Retrieve shortlinks for your link based gift offer campaigns.  After creating a SHORTLINK campaign, you can  immediately begin polling this endpoint (we recommend a one minute poll interval) and checking the `info`.`code` value.  It will change from `INFO_LINKS_GENERATION_IN_PROGRESS` to `INFO_LINKS` when the links are available (and they will be included in the response) as per the documented response body.
 
 ### retrieve shortlinks by id or uuid [GET /links/{id_or_uuid}{?limit}{?offset}]
 + Request (application/json)
@@ -1132,12 +1131,12 @@ Retrieve shortlinks for your link based gift offer campaigns
     + Attributes
         + info
             + code (string) - A status code for the links.
-                <ul>
-                    <li>INFO_LINKS - The links are ready.</li>
-                    <li>INFO_LINKS_GENERATION_IN_PROGRESS - The links are still being created.</li>
-                    <li>ERROR_LINKS_CAMPAIGN_INACTIVE - The claim before date on the gift offer has passed.</li>
-                    <li>ERROR_LINKS_BAD_CAMPAIGN - Invalid campaign id or the campaign was found but is not a SHORTLINK campaign.</li>                
-                </ul>
+                
+                    INFO_LINKS - The links are ready.
+                    INFO_LINKS_GENERATION_IN_PROGRESS - The links are still being created.
+                    ERROR_LINKS_CAMPAIGN_INACTIVE - The claim before date on the gift offer has passed.
+                    ERROR_LINKS_BAD_CAMPAIGN - Invalid campaign id or the campaign was found but is not a SHORTLINK campaign.                
+                
         + shortlinks
             + number (number) - Link number.
             + shortlink (string) - The gift offers url.
