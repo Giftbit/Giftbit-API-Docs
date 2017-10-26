@@ -421,9 +421,9 @@ price of marketplace gift(s) you'd like to include in your campaigns.  Note that
             + `terms_and_conditions` (string) - Terms and conditions associated with the gift.
             + `image_url`  - The gift's image.
             + `tax` (string) - The tax code associated with the gift. Possible values: HST, GST, NOTAX, and GSTANDPST.
-            + `vendor` (string) - Deprecated.  Use `brand` instead. Only returned if requested with long_format.
-            + `brand` (string) - The brand associated with the marketplace gift. Only returned if requested with long_format.
-            + `regions` (string) - A list of regions that the marketplace gift is available in. Only returned if requested with long_format.
+            + `vendor` (object) - Deprecated.  Use `brand` instead. Only returned if requested with long_format.
+            + `brand` (object) - The brand associated with the marketplace gift. Only returned if requested with long_format.  See response example body or `/brands` endpoint for details.
+            + `regions` (object) - A list of regions that the marketplace gift is available in. Only returned if requested with long_format.  See response example body or `regions` endpoint for details.
             + `prices_in_cents` (string) - A list of values, in cents, that can be chosen when giving this gift. Either prices_in_cents or max_price_in_cents will be defined but not both.
             + `currencyisocode` (string) - Three digit uppercase currency code that gives the currency of this gift
             + `max_price_in_cents` (string) - The maximum value that can be chosen when giving this gift. 
