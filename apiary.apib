@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: https://testbedapp.giftbit.com/papi/v1
+HOST: https://preprodapp.giftbit.com/papi/v1
 
 # Giftbit API
 Giftbit's RESTFul API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow. 
@@ -286,7 +286,7 @@ The `/brands` endpoint returns Giftbit's gift card brands available to you and f
 If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer' common use case, you do not need to use the `/brands` endpoint.
 
 
-### list brands [GET /brands]
+### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}]
 + Parameters
     + region (number, optional) - Limits the results to brands that are available in the provided region as per the `id` returned from the `/region` endpoint.
     + `max_price_in_cents` (number, optional) - Limits the results to brands that have an available gift  option less than or equal to this value.
@@ -391,7 +391,7 @@ It can be used in conjunction with the `/brands` endpoint to provide an interact
 price of marketplace gift(s) you'd like to include in your campaigns.  Note that the `ids` are environment specific (Testbed `ids` will not work in production and vice versa).
 
 
-### list marketplace [GET /marketplace]
+### list marketplace [GET /marketplace{?brand}{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?limit}{?offset}{?long_format}]
 + Parameters
     + brand (string, optional) - Limits the results to marketplace gifts for the given brand code.
     + region (number, optional) - Limits the results to marketplace gifts that available in the provided region.
@@ -852,7 +852,7 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
 
 All date/time fields are in Pacific Standard Time.
 
-### list gifts [GET /gifts]
+### list gifts [GET /gifts{?uuid}{?campaign_uuid}{?campaign_id}{?price_in_cents_greater_than}{?price_in_cents_less_than}{?marketplacegift_id}{?recipient_name}{?recipient_email}{?delivery_status}{?status}{?created_date_greater_than}{?created_date_less_than}{?delivery_date_greater_than}{?delivery_date_less_than}{?redelivery_count_greater_than}{?redelivery_count_less_than}{?redeemed_date_greater_than}{?redeemed_date_less_than}{?limit}{?offset}{?sort}{?order}]
 + Request (application/json)
     + Headers
 
