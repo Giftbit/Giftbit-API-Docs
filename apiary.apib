@@ -51,7 +51,7 @@ Then, whenever you wish to create a campaign through the API, you'd provide thos
 
 ### Providing an Interactive Marketplace 
 Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
-In this type of integration, you'd use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
+In this type of integration, you use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
 capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
 ## Delivery Types
@@ -281,10 +281,7 @@ Lists all available regions.  Can be used in conjunction with `/brands` and `/ma
         
 
 ## Brands [/brands]
-The `/brands` endpoint returns Giftbit's gift card brands available to you and facilitates building an elegant interactive gift card marketplace in your own app or web offering for your users.   It is recommended that you present brands via this endpoint passing in the appropriate restrictions for the user's selection (region, price range, etc), and then allow drilling down into the individual gift card offerings for that brand via a `/marketplace` call with the given `brand` as a parameter so the user can make their choice.  Note that this is how Giftbit builds its own interactive marketplace in our web application.
-
-If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer' common use case, you do not need to use the `/brands` endpoint.
-
+The `/brands` endpoint returns Giftbit's gift card brands available to you.  facilitates building an elegant interactive gift card marketplace in your own app or web offering for your users.   It is recommended that you present brands via this endpoint passing in the appropriate restrictions for the user's selection (region, price range, etc), and then allow drilling down into the individual gift card offerings for that brand via a `/brand` call with the given `brand` as a parameter so the user can make their choice.  Note that this is how Giftbit builds its own interactive marketplace in our web application.
 
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}]
 + Parameters
@@ -357,18 +354,46 @@ If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer
             
 + Response 200
 
+    + Attributes
+        + brands
+            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `marketplace` endpoint
+            + `name` (string) - The name of the Brand.
+            + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
+            + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
+            + `regions` (array[number]) - a list of region ids (corresponding to the `/regions` endpoint in which this brand is available
+            + `fund_currencyisocode` (string) - The three character currency code for this brand.
+            + `variable_price` (boolean) - true if this brand allows gifts to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents' will be set
+            + `min_price_in_cents` (number, optional) - Gives the minimum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
+            + `max_price_in_cents` (number, optional) - Gives the maximum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
+            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible gift values for non variable price brands.  Will be present in the response only if variable_price=false
+            
+        + info
+            + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
+            
     + Body
 
             {
                 "brand": {
                     "brand_code": "WHOLEFOODS",
                     "name": "Whole Foods Market",
-                    "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png"
+                    "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png",
+                     "regions": [
+                        2
+                    ],
+                    "fund_currencyisocode": "USD",
+                    "inapp_available": true,
+                    "variable_price": false,
+                    "allowed_prices_in_cents": [
+                        1000,
+                        2500,
+                        5000,
+                        10000
+                    ]
                 },
                 "info": {
                     "code": "INFO_BRANDS_RETRIEVED",
-                    "name": "Brands Retrieved",
-                    "message": "A list of brands has been retrieved"
+                    "name": "Brand(s) Retrieved",
+                    "message": "A list of brands or single brand has been retrieved"
                 }
             }       
 
