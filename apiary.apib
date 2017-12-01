@@ -286,7 +286,7 @@ The `/brands` endpoint returns Giftbit's gift card brands available to you.   It
 
 The `brand_code` returned, along with a valid price for the brand, is all you need to create your gift offers through the `campaign` endpoint.
 
-Note that when you retrieve a single brand via the `/brands/{brand_code}` call, extended information about the brand is provided such as whether or not the brand allows any price in a range or a fixed set of prices.
+Note that when you retrieve a single brand via the `/brands/{brand_code}` call, extended information about the brand is provided such as a full description and the allowed price range (or fixed set of allowed prices, depending on the brand).
 
 
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}]
@@ -421,157 +421,8 @@ The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed 
 
 If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
 
-### list marketplace [GET /marketplace{?brand}{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?limit}{?offset}{?long_format}]
-+ Parameters
-    + brand (string, optional) - Limits the results to marketplace gifts for the given brand code.
-    + region (number, optional) - Limits the results to marketplace gifts that available in the provided region.
-    + `max_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value less than the provided value.
-    + `min_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value more than the provided value.
-    + currencyisocode (string, optional) - Limits the results to marketplace gifts matching the provided currency. Options:
-        * CAD
-        * USD
-    + limit (number, optional) - Limits the number of results to the provided value. Default value is 20.
-    + offset (number, optional) - Offsets the results by provided value. Used for paging through results. Default value is 0.
-    + long_format (boolean, optional) - Provides additional information in the results. If true, will also return Brand and Region as part of the marketplace gift results. Default false.
-    
-
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_ACCESS_TOKEN
-
-+ Response 200
-
-    + Attributes
-        + marketplace_gifts
-            + id (number) - A numeric identifier for the gift. This identifier can be used with the campaign object to send gifts.
-            + name (string) - The name of the gift.
-            + description (string) - A description of the gift.
-            + `redemption_instructions` (string) - The redemption instructions that will be presented to the recipient.
-            + `terms_and_conditions` (string) - Terms and conditions associated with the gift.
-            + `image_url`  - The gift's image.
-            + `tax` (string) - The tax code associated with the gift. Possible values: HST, GST, NOTAX, and GSTANDPST.
-            + `vendor` (object) - Deprecated.  Use `brand` instead. Only returned if requested with long_format.
-            + `brand` (object) - The brand associated with the marketplace gift. Only returned if requested with long_format.  See response example body or `/brands` endpoint for details.
-            + `regions` (object) - A list of regions that the marketplace gift is available in. Only returned if requested with long_format.  See response example body or `regions` endpoint for details.
-            + `prices_in_cents` (string) - A list of values, in cents, that can be chosen when giving this gift. Either prices_in_cents or max_price_in_cents will be defined but not both.
-            + `currencyisocode` (string) - Three digit uppercase currency code that gives the currency of this gift
-            + `max_price_in_cents` (string) - The maximum value that can be chosen when giving this gift. 
-            + `min_price_in_cents` (string) - The minimum value that can be chosen when giving this gift.  min_price_in_cents will always be accompanied by max_price_in_cents.
-        + `number_of_results` (number) - The number of results.
-        + info
-            + code (string) - A status code for the request. Possible values: `INFO_MARKETPLACE_RETRIEVE`
-        + limit (number) - The maximum number of results that can be returned. 
-        + offset (number) - The offset into the results. 
-        + `total_count` (number) - The total number of results that matched request.
-            
-    + Body
-    
-            {
-               "marketplace_gifts":[
-                  {
-                     "id":1,
-                     "name":"Amazon.com Gift Card",
-                     "description":"Available in the US. A gift card that can be used towards any product on amazon.com. This gift is sent in US Currency.",
-                     "redemption_instructions":"To get your Amazon.com gift card code, click Use Gift Now.\r\n\r\nTo redeem your gift card, follow these steps:\r\n\r\n1. Visit www.amazon.com/gc\r\n2. Click Apply to Account and enter the Claim Code when prompted.\r\n3. Gift card funds will be applied automatically to eligible orders during the checkout process.\r\n4. You must pay for any remaining balance on your order with another payment method.\r\n\r\nYour gift card claim code may also be entered when prompted during checkout. To redeem your gift card using the Amazon.com 1-Click® service, first add the gift card funds to Your Account. If you have questions about redeeming your gift card, please visit www.amazon.com/gc-redeem or contact hello@giftbit.com.",
-                     "terms_and_conditions":"Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees.Kiind Inc., doing business as Giftbit, and/or Kiind, Corp, doing business as Giftbit through www.giftbit.com and/or through Giftbit's mobile application(s) and other services.",
-                     "image_url":"https://uploadedimagestestbed.giftbit.com/80/amazon-73636908-1d6b-49ec-81c9-3819b8c6c408.jpg",
-                     "tax":"NOTAX",
-                     "currencyisocode":"USD",
-                     "max_price_in_cents":50000,
-                     "min_price_in_cents":500
-                  },
-                  {
-                    "id": 625,
-                    "name": "$5.00 Walmart eGift Card",
-                    "description": "With a Walmart eGift Card, you get low prices every day on thousands of popular products in stores or online at Walmart.com. You'll find a wide assortment of top electronics, toys, home essentials and more. Plus, cards don't expire and you never pay any fees.",
-                    "redemption_instructions": "Click on \"Claim Gift Card\" then click on \"Take me to my full gift card\". Be sure to complete these steps by the Claim Before date shown above. Once claimed, you can redeem your gift card in the following ways:<p>You can redeem your Walmart eGift Card at Walmart.com and Samsclub.com or print it out to use in a Walmart or Sam's Club store.",
-                    "terms_and_conditions": "These Walmart Gift Card Terms and Conditions (\"Terms and Conditions\") are applicable in addition to the Terms of Use and Privacy Policy applicable to the Walmart.com website. Nonreturnable; not for resale. Notwithstanding anything contained in these Terms and Conditions, Walmart plastic Gift Cards and eGift Cards (\"Walmart Gift Cards\") are not returnable or refundable for cash except in states where required by law. Resale of Walmart Gift Cards is strictly prohibited. The balance on any Gift Card is solely the liability of Wal-Mart Stores Arkansas, LLC. Walmart Gift Cards never expire. To use at SAMS CLUB®, the holder must be a SAM'S CLUB member or a 10% service fee will apply except where prohibited.  Shopping card value may be applied toward annual Membership.  Visit help.walmart.com for the full Terms and Conditions.",
-                    "image_url": "https://uploadedimages.giftbit.com/3033/Walmartlogo-ade7409d-490b-45b7-af88-1288bd805b49.png",
-                    "tax": "NOTAX",
-                    "currencyisocode": "USD",
-                    "prices_in_cents": [
-                        500
-                    ]
-                }
-               ],
-               "number_of_results":2,
-               "info":{
-                  "code":"INFO_MARKETPLACE_RETRIEVED",
-                  "name":"Marketplace Gifts Retrieved",
-                  "message":"A list of marketplace gifts has been retrieved."
-               },
-               "limit":2,
-               "offset":0,
-               "total_count":273
-            }
-
-### retrieve marketplace gift [GET /marketplace/{id}] 
-+ Parameters
-    + id (number, required) - Retrieve a single marketplace gift by id.
-
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_ACCESS_TOKEN
-            
-+ Response 200
-
-    + Body
-
-            {
-              "marketplaceGift": {
-                "id": 1,
-                "name": "Amazon.com Gift Card",
-                "description": "Available in the US. A gift card that can be used towards any product on amazon.com. This gift is sent in US Currency.",
-                "redemption_instructions": "To get your Amazon.com gift card code, click Use Gift Now.\r\n\r\nTo redeem your gift card, follow these steps:\r\n\r\n1. Visit www.amazon.com/gc\r\n2. Click Apply to Account and enter the Claim Code when prompted.\r\n3. Gift card funds will be applied automatically to eligible orders during the checkout process.\r\n4. You must pay for any remaining balance on your order with another payment method.\r\n\r\nYour gift card claim code may also be entered when prompted during checkout. To redeem your gift card using the Amazon.com 1-Click® service, first add the gift card funds to Your Account. If you have questions about redeeming your gift card, please visit www.amazon.com/gc-redeem or contact hello@giftbit.com.",
-                "terms_and_conditions": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees.Kiind Inc., doing business as Giftbit, and/or Kiind, Corp, doing business as Giftbit through www.giftbit.com and/or through Giftbit's mobile application(s) and other services.",
-                "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-73636908-1d6b-49ec-81c9-3819b8c6c408.jpg",
-                "tax": "NOTAX",
-                "currencyisocode": "USD",
-                "vendor": {
-                  "id": 79,
-                  "name": "Amazon",
-                  "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
-                  "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees."
-                },
-                "brand": {
-                  "brand_code": "AMZNCOM",
-                  "name": "Amazon",
-                  "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
-                  "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees."
-                },
-                "regions": [
-                  {
-                    "id": 2,
-                    "name": "Across the USA",
-                    "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/card-images/AcrossUSA_224.png"
-                  }
-                ],
-                "max_price_in_cents": 50000,
-                "min_price_in_cents": 500
-              },
-              "info": {
-                "code": "INFO_MARKETPLACE_RETRIEVED",
-                "name": "Marketplace Gifts Retrieved",
-                "message": "A list of marketplace gifts has been retrieved."
-              }
-            }
-
-+ Response 422
-
-    + Body
-    
-            {
-                "error": {
-                    "code": "ERROR_MARKETPLACE_NO_SUCH_GIFT",
-                    "name": "No gift found",
-                    "message": "No gift found matching that id"
-                },
-                "status": 422
-            }
-
-
+### list marketplace [GET /marketplace]
+ 
 ## Campaign [/campaign]
 The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more brands from the `/brands` endpoint that the each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
 
@@ -601,8 +452,8 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                         * email (required)
                         * firstname (optional)
                         * lastname (optional)
-        + `gift_price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brands
-        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  Providing more than one brand gives a gift of choice; recipients get to choose the brand they prefer as part of the claim process.
+        + `gift_price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
+        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
         + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
         + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.  
         
@@ -694,7 +545,8 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                   ],
                   "gift_price_in_cents": 5000,
                   "brand_codes": [
-                        "itunesus"
+                        "itunesus",
+                        "amazonus"
                   ],
                   "status":"API_CREATING",
                   "uuid":"9a405b513c11413aaac593a0c2e1a15d",
