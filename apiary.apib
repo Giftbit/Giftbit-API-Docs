@@ -5,7 +5,7 @@ HOST: https://testbedapp.giftbit.com/papi/v1
 Giftbit's RESTFul API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow. 
 This document includes a definitive list of endpoints defined under the 'Reference' section, along with common use cases, error code reference, and code examples. 
 
-You can try all of the API calls directly from this interactive document (or your preferred REST client) with  an `access_token` from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
+You can try all of the API calls directly from this interactive document (or your preferred REST client) with an `access_token` from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
 Once you sign-up you'll receive a welcome email containing everything you need to create an `access_token` and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
 
 ## Environments and URLs
@@ -38,7 +38,7 @@ In all cases creating and sending a gift offer involves creating a campaign usin
 consists of a price of the gift(s) you are offering, one or more brands, and one or more contacts. If your use case requires delivering the gifts
 via a unique shortlink then you can omit contacts and simply provide a `link_count` in the request.
 <br><br>
-The `/brands` endpoint allows you to retreive the necessary information for the brands you'd like to include in your campaign, in particular the brand_code and an allowed price for the brand. 
+The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your campaign, in particular the brand_code and an allowed price for the brand. 
 Depending on the brand, some only allow certain gift values while others have an allowed range.
 <br><br>
 
@@ -68,7 +68,7 @@ quality. You must include one or more recipients to send the offer to in your ca
 the `delivery_type` parameter may be omitted or set to `GIFTBIT_EMAIL`.
 
 ### Shortlink Delivery (for delivering the gifts yourself)
-In the cases where email based delivery is not appropriate or you do not have email addresses for your
+In the cases where email-based delivery is not appropriate or you do not have email addresses for your
 recipients, you may create a campaign where each gift offer is represented by a unique shortlink. 
 To do so you set the `delivery_type` parameter to `SHORTLINK` and provide either a `link_count` or a list of contacts.
 You can retrieve the links via the `/links` or `/gifts` endpoint which are usually ready within minutes. You can then deliver them yourself to your recipients physically or
@@ -83,7 +83,7 @@ a `link_count` you can retrieve redemption information for each link so it's pos
 recipients in your system.
 
 ## Templates
-Templates allow your gift messages to be richly formatted, and provide a nice separation of responsibility
+Templates allow your gift messages to be richly formatted and provide a nice separation of responsibility
 between content creators and developers. This is done by allowing the gift content (subject, the message with formatting and
 rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
 without requiring any changes to the API calls themselves when the content
@@ -424,7 +424,7 @@ If you are planning to make any changes to your implementation, we strongly reco
 ### list marketplace [GET /marketplace]
  
 ## Campaign [/campaign]
-The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more brands from the `/brands` endpoint that the each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
+The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more brands from the `/brands` endpoint that each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
 
 ### Handling network timeouts on creation
 
