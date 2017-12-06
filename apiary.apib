@@ -129,7 +129,7 @@ Example:
     "error": {
         "code": "ERROR_CAMPAIGN_INVALID_BRAND",
         "name": "Invalid Brand or Brand/Price combination",
-        "message": "brand_code: itunesus - gift_price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
+        "message": "brand_code: itunesus - price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
     },
     "status": 422
 }
@@ -452,7 +452,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                         * email (required)
                         * firstname (optional)
                         * lastname (optional)
-        + `gift_price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
+        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
         + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
         + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.  
@@ -474,7 +474,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                          "email":"rrobson@giftbit.com"
                      }
                 ],
-                "gift_price_in_cents":5000,
+                "price_in_cents":5000,
                 "brand_codes": [
                     "itunesus",
                     "amazonus"
@@ -495,7 +495,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             + message (string) - The message for the campaign.
             + subject (string) - The subject for the campaign.
             + contacts (object) - A list of contacts the campaign is being sent to.
-            + gift_price_in_cents (number) - The amount of the gift offer to each recipient.
+            + price_in_cents (number) - The amount of the gift offer to each recipient.
             + brand_codes (array[string]) - The brand(s) of gift cards sent.
             + status (string) - The status of the campaign. Possibilities:
                 API_CREATING - The campaign is in the process of being created.
@@ -543,7 +543,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                         "message":"New contact"
                      }
                   ],
-                  "gift_price_in_cents": 5000,
+                  "price_in_cents": 5000,
                   "brand_codes": [
                         "itunesus",
                         "amazonus"
@@ -601,7 +601,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                 "error": {
                     "code": "ERROR_CAMPAIGN_INVALID_BRAND",
                     "name": "Invalid Brand or Brand/Price combination",
-                    "message": "brand_code: itunesus - gift_price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
+                    "message": "brand_code: itunesus - price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
                 },
                 "status": 422
             }
@@ -644,7 +644,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                         "lastname":"Robson"
                      }
                   ],
-                  "gift_price_in_cents": 5000,
+                  "price_in_cents": 5000,
                   "brand_codes": [
                         "itunesus"
                   ],
