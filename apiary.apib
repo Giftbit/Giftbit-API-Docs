@@ -5,7 +5,7 @@ HOST: https://testbedapp.giftbit.com/papi/v1
 Giftbit's RESTFul API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow. 
 This document includes a definitive list of endpoints defined under the 'Reference' section, along with common use cases, error code reference, and code examples. 
 
-You can try all of the API calls directly from this interactive document (or your preferred REST client) with  an `access_token` from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
+You can try all of the API calls directly from this interactive document (or your preferred REST client) with an `access_token` from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
 Once you sign-up you'll receive a welcome email containing everything you need to create an `access_token` and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
 
 ## Environments and URLs
@@ -24,7 +24,7 @@ Contact the Giftbit API support team at testbed@giftbit.com when you are ready f
 There are a few key differences between Giftbit’s Testbed and production APIs designed to make building and testing your integration as easy and safe as possible:
 * All gift emails sent through Testbed will not go to the specified recipient email but instead be sent to the email address you provided for your testbed account signup, allowing you to test the full gifting process safely.
 * Gift emails from Testbed all have a header identifying them as test emails.
-* The brands in the testbed marketplace are not reflective of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list.
+* The brands in testbed are not reflective of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list. Or access the `/brands` endpoint with your production API token
 * You will have a different API token for Testbed and production.
 * All of your account settings are set separately in testbed and production.
 * To encourage continuous integration testing against our Testbed API, you will be given a very large initial account balance on your Testbed account. A test credit card (no real charges) will also be attached to the Testbed account so you can add more funds, if needed, from your funding dashboard.
@@ -35,23 +35,22 @@ There are a few key differences between Giftbit’s Testbed and production APIs 
 ## Common Use Cases
 Depending on your use case, there are several different options for creating gift offers through the API. 
 In all cases creating and sending a gift offer involves creating a campaign using the `/campaign` endpoint. A campaign
-consists of one or more marketplace gifts, and one or more contacts. If your use case requires delivering the gifts
+consists of a price of the gift(s) you are offering, one or more brands, and one or more contacts. If your use case requires delivering the gifts
 via a unique shortlink then you can omit contacts and simply provide a `link_count` in the request.
 <br><br>
-The required marketplace gift(s) in creating a campaign consists of a marketplace gift id and a price in cents. You can use the
-`/marketplace` endpoint to get the `ids` and allowed prices for the gifts you'd like to include in your campaign. 
-Depending on the marketplace gift some are a fixed price while others have a list or range of prices you can choose from.
+The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your campaign, in particular the brand_code and an allowed price for the brand. 
+Depending on the brand, some only allow certain gift values while others have an allowed range.
 <br><br>
 
-### Sending Predefined Marketplace Gift(s) with Each Offer
-A simple yet popular API use case is to set up a certain gift or choice of gifts that is always used when
-sending campaigns. In this use case, you'd retrieve the `ids` of the marketplace gifts you want
-manually through the `/marketplace` endpoint, choose a valid and desired gift price, and store them in your database or configuration.
-Then, whenever you wish to create a campaign through the API, you'd provide those same predefined gifts and the prices.  If you include more than one gift in a campaign, the recipient will get to choose their desired gift as part of the claim process.
+### Sending Predefined Brand(s) with Each Offer
+A simple yet popular API use case is to set up a certain brand or choice of brands that is always used when
+sending campaigns. In this use case, you'd retrieve the `brand_code` of each brand you want to send
+manually through the `/brands` endpoint, choose a valid and desired gift price, and store them in your database or configuration.
+Then, whenever you wish to create a campaign through the API, you'd provide those same predefined brand_codes and the price.  If you include more than one brand in a campaign, the recipient will get to choose their desired brand as part of the claim process.
 
-### Providing an Interactive Marketplace 
+### Providing an Interactive Brand Marketplace 
 Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
-In this type of integration, you'd use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
+In this type of integration, you use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
 capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
 ## Delivery Types
@@ -69,7 +68,7 @@ quality. You must include one or more recipients to send the offer to in your ca
 the `delivery_type` parameter may be omitted or set to `GIFTBIT_EMAIL`.
 
 ### Shortlink Delivery (for delivering the gifts yourself)
-In the cases where email based delivery is not appropriate or you do not have email addresses for your
+In the cases where email-based delivery is not appropriate or you do not have email addresses for your
 recipients, you may create a campaign where each gift offer is represented by a unique shortlink. 
 To do so you set the `delivery_type` parameter to `SHORTLINK` and provide either a `link_count` or a list of contacts.
 You can retrieve the links via the `/links` or `/gifts` endpoint which are usually ready within minutes. You can then deliver them yourself to your recipients physically or
@@ -84,16 +83,18 @@ a `link_count` you can retrieve redemption information for each link so it's pos
 recipients in your system.
 
 ## Templates
-Templates allow your gift messages to be richly formatted, and provide a nice separation of responsibility
+Templates allow your gift messages to be richly formatted and provide a nice separation of responsibility
 between content creators and developers. This is done by allowing the gift content (subject, the message with formatting and
 rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
 without requiring any changes to the API calls themselves when the content
 changes. To get started with templates navigate to the templates section of your account. 
 <br><br>
 Each template will be auto-assigned a unique uppercase short identifier shown in the web interface. This is the 
-id you'll use in the `gift_template` field of the campaign creation request. Note that if you provide a gift template
+id you'll use in the `gift_template` field of the `/campaign` creation request. Note that if you provide a gift template
 then you must omit the message and subject in the request, unless you want to override the template content in that particular
 request.
+
+While we highly recommend using templates, it is not mandatory.  You may specify the subject and message for your offers via the `/campaign` campaign creation request.
 
 ## HTTP Success and Error codes
 Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.  ONLY an HTTP status of 200 means the request was successful.  For non 200 responses, the predictable response body (described below) will give you details on why the request failed.  We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to assist with troubleshooting. This section gives details on the response codes and recommended actions.
@@ -126,9 +127,9 @@ Example:
 ```
 {
     "error": {
-        "code": "ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT",
-        "name": "Invalid Marketplace Gift",
-        "message": "id:12345, invalid gift id"
+        "code": "ERROR_CAMPAIGN_INVALID_BRAND",
+        "name": "Invalid Brand or Brand/Price combination",
+        "message": "brand_code: itunesus - gift_price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
     },
     "status": 422
 }
@@ -230,7 +231,7 @@ You can authenticate in one of two ways when making API calls:
 
 ## Regions [/regions]
 
-Lists all available regions.  Can be used in conjunction with `/brands` and `/marketplace` to provide an interactive gift card experience in your app or web offering.
+Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
 
 ## list regions [GET /regions]
 + Request (application/json)
@@ -245,7 +246,7 @@ Lists all available regions.  Can be used in conjunction with `/brands` and `/ma
             + name (string) - The name of the region.
             + `image_url` (string) - An image for the region.
         + info
-            + code (string) - Status code. [`INFO_MARKETPLACE_RETRIEVED_REGIONS`]
+            + code (string) - Status code. [`INFO_RETRIEVED_REGIONS`]
     
     + Body
             
@@ -273,17 +274,19 @@ Lists all available regions.  Can be used in conjunction with `/brands` and `/ma
                     }
                 ],
                 "info": {
-                    "code": "INFO_MARKETPLACE_RETRIEVED_REGIONS",
-                    "name": "Marketplace Regions Retrieved",
-                    "message": "A list of marketplace regions has been retrieved."
+                    "code": "INFO_RETRIEVED_REGIONS",
+                    "name": "Regions Retrieved",
+                    "message": "A list of regions has been retrieved."
                 }
             }
         
 
 ## Brands [/brands]
-The `/brands` endpoint returns Giftbit's gift card brands available to you and facilitates building an elegant interactive gift card marketplace in your own app or web offering for your users.   It is recommended that you present brands via this endpoint passing in the appropriate restrictions for the user's selection (region, price range, etc), and then allow drilling down into the individual gift card offerings for that brand via a `/marketplace` call with the given `brand` as a parameter so the user can make their choice.  Note that this is how Giftbit builds its own interactive marketplace in our web application.
+The `/brands` endpoint returns Giftbit's gift card brands available to you.   It provides complete search, filter, and paging functionality and is used in all use cases.
 
-If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer' common use case, you do not need to use the `/brands` endpoint.
+The `brand_code` returned, along with a valid price for the brand, is all you need to create your gift offers through the `campaign` endpoint.
+
+Note that when you retrieve a single brand via the `/brands/{brand_code}` call, extended information about the brand is provided such as a full description and the allowed price range (or fixed set of allowed prices, depending on the brand).
 
 
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}]
@@ -295,7 +298,7 @@ If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer
         * CAD
         * USD
         * AUD
-    + search (string, optional) - Limits the results to brands containing the search term provided in their name.  Results will also be returned for brands that have the search term in any of their marketplace gifts' name or description.
+    + search (string, optional) - Limits the results to brands containing the search term provided in their name, description, or other fields.
     + limit (number, optional) - Limits the number of results to the provided value. Default value is 20.
     + offset (number, optional) - Offsets the results by provided value. Used for paging through results. Default value is 0.
 
@@ -308,7 +311,7 @@ If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer
 
     + Attributes
         + brands
-            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `marketplace` endpoint
+            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your gift offers.
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
@@ -338,8 +341,8 @@ If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer
                "number_of_results":2,
                "info":{
                   "code":"INFO_BRANDS_RETRIEVED",
-                  "name":"Marketplace Gifts Retrieved",
-                  "message":"A list of marketplace gifts has been retrieved."
+                  "name":"Brand(s) Retrieved",
+                  "message":"A list of brands or single brand has been retrieved"
                },
                "limit":20,
                "offset":0,
@@ -357,18 +360,46 @@ If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer
             
 + Response 200
 
+    + Attributes
+        + brands
+            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your gift offers.
+            + `name` (string) - The name of the Brand.
+            + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
+            + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
+            + `regions` (array[number]) - a list of region ids (corresponding to the `/regions` endpoint in which this brand is available
+            + `fund_currencyisocode` (string) - The three character currency code for this brand.
+            + `variable_price` (boolean) - true if this brand allows gifts to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents' will be set
+            + `min_price_in_cents` (number, optional) - Gives the minimum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
+            + `max_price_in_cents` (number, optional) - Gives the maximum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
+            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible gift values for non variable price brands.  Will be present in the response only if variable_price=false
+            
+        + info
+            + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
+            
     + Body
 
             {
                 "brand": {
                     "brand_code": "WHOLEFOODS",
                     "name": "Whole Foods Market",
-                    "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png"
+                    "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png",
+                     "regions": [
+                        2
+                    ],
+                    "fund_currencyisocode": "USD",
+                    "inapp_available": true,
+                    "variable_price": false,
+                    "allowed_prices_in_cents": [
+                        1000,
+                        2500,
+                        5000,
+                        10000
+                    ]
                 },
                 "info": {
                     "code": "INFO_BRANDS_RETRIEVED",
-                    "name": "Brands Retrieved",
-                    "message": "A list of brands has been retrieved"
+                    "name": "Brand(s) Retrieved",
+                    "message": "A list of brands or single brand has been retrieved"
                 }
             }       
 
@@ -386,168 +417,18 @@ If you are following the 'Sending Predefined Marketplace Gift(s) with Each Offer
             }
 
 ## Marketplace [/marketplace]
-The `/marketplace` endpoint is used for retrieving Giftbit's available gift options for a single brand or across all brands. 
-It can be used in conjunction with the `/brands` endpoint to provide an interactive marketplace or you can simply use it manually to retrieve the `id` and 
-price of marketplace gift(s) you'd like to include in your campaigns.  Note that the `ids` are environment specific (Testbed `ids` will not work in production and vice versa).
+The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed and improved into `/brands`.  Note that if you have built your `/campaign` calls providing marketplace_gifts, they will still continue to function and the request and response bodies will be unchanged so your implementation will not break. (Note, therefore, they may not exactly match the current `/campaign` documentation).
 
+If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
 
-### list marketplace [GET /marketplace{?brand}{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?limit}{?offset}{?long_format}]
-+ Parameters
-    + brand (string, optional) - Limits the results to marketplace gifts for the given brand code.
-    + region (number, optional) - Limits the results to marketplace gifts that available in the provided region.
-    + `max_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value less than the provided value.
-    + `min_price_in_cents` (number, optional) - Limits the results to marketplace gifts that can be sent or a value more than the provided value.
-    + currencyisocode (string, optional) - Limits the results to marketplace gifts matching the provided currency. Options:
-        * CAD
-        * USD
-    + limit (number, optional) - Limits the number of results to the provided value. Default value is 20.
-    + offset (number, optional) - Offsets the results by provided value. Used for paging through results. Default value is 0.
-    + long_format (boolean, optional) - Provides additional information in the results. If true, will also return Brand and Region as part of the marketplace gift results. Default false.
-    
-
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_ACCESS_TOKEN
-
-+ Response 200
-
-    + Attributes
-        + marketplace_gifts
-            + id (number) - A numeric identifier for the gift. This identifier can be used with the campaign object to send gifts.
-            + name (string) - The name of the gift.
-            + description (string) - A description of the gift.
-            + `redemption_instructions` (string) - The redemption instructions that will be presented to the recipient.
-            + `terms_and_conditions` (string) - Terms and conditions associated with the gift.
-            + `image_url`  - The gift's image.
-            + `tax` (string) - The tax code associated with the gift. Possible values: HST, GST, NOTAX, and GSTANDPST.
-            + `vendor` (object) - Deprecated.  Use `brand` instead. Only returned if requested with long_format.
-            + `brand` (object) - The brand associated with the marketplace gift. Only returned if requested with long_format.  See response example body or `/brands` endpoint for details.
-            + `regions` (object) - A list of regions that the marketplace gift is available in. Only returned if requested with long_format.  See response example body or `regions` endpoint for details.
-            + `prices_in_cents` (string) - A list of values, in cents, that can be chosen when giving this gift. Either prices_in_cents or max_price_in_cents will be defined but not both.
-            + `currencyisocode` (string) - Three digit uppercase currency code that gives the currency of this gift
-            + `max_price_in_cents` (string) - The maximum value that can be chosen when giving this gift. 
-            + `min_price_in_cents` (string) - The minimum value that can be chosen when giving this gift.  min_price_in_cents will always be accompanied by max_price_in_cents.
-        + `number_of_results` (number) - The number of results.
-        + info
-            + code (string) - A status code for the request. Possible values: `INFO_MARKETPLACE_RETRIEVE`
-        + limit (number) - The maximum number of results that can be returned. 
-        + offset (number) - The offset into the results. 
-        + `total_count` (number) - The total number of results that matched request.
-            
-    + Body
-    
-            {
-               "marketplace_gifts":[
-                  {
-                     "id":1,
-                     "name":"Amazon.com Gift Card",
-                     "description":"Available in the US. A gift card that can be used towards any product on amazon.com. This gift is sent in US Currency.",
-                     "redemption_instructions":"To get your Amazon.com gift card code, click Use Gift Now.\r\n\r\nTo redeem your gift card, follow these steps:\r\n\r\n1. Visit www.amazon.com/gc\r\n2. Click Apply to Account and enter the Claim Code when prompted.\r\n3. Gift card funds will be applied automatically to eligible orders during the checkout process.\r\n4. You must pay for any remaining balance on your order with another payment method.\r\n\r\nYour gift card claim code may also be entered when prompted during checkout. To redeem your gift card using the Amazon.com 1-Click® service, first add the gift card funds to Your Account. If you have questions about redeeming your gift card, please visit www.amazon.com/gc-redeem or contact hello@giftbit.com.",
-                     "terms_and_conditions":"Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees.Kiind Inc., doing business as Giftbit, and/or Kiind, Corp, doing business as Giftbit through www.giftbit.com and/or through Giftbit's mobile application(s) and other services.",
-                     "image_url":"https://uploadedimagestestbed.giftbit.com/80/amazon-73636908-1d6b-49ec-81c9-3819b8c6c408.jpg",
-                     "tax":"NOTAX",
-                     "currencyisocode":"USD",
-                     "max_price_in_cents":50000,
-                     "min_price_in_cents":500
-                  },
-                  {
-                    "id": 625,
-                    "name": "$5.00 Walmart eGift Card",
-                    "description": "With a Walmart eGift Card, you get low prices every day on thousands of popular products in stores or online at Walmart.com. You'll find a wide assortment of top electronics, toys, home essentials and more. Plus, cards don't expire and you never pay any fees.",
-                    "redemption_instructions": "Click on \"Claim Gift Card\" then click on \"Take me to my full gift card\". Be sure to complete these steps by the Claim Before date shown above. Once claimed, you can redeem your gift card in the following ways:<p>You can redeem your Walmart eGift Card at Walmart.com and Samsclub.com or print it out to use in a Walmart or Sam's Club store.",
-                    "terms_and_conditions": "These Walmart Gift Card Terms and Conditions (\"Terms and Conditions\") are applicable in addition to the Terms of Use and Privacy Policy applicable to the Walmart.com website. Nonreturnable; not for resale. Notwithstanding anything contained in these Terms and Conditions, Walmart plastic Gift Cards and eGift Cards (\"Walmart Gift Cards\") are not returnable or refundable for cash except in states where required by law. Resale of Walmart Gift Cards is strictly prohibited. The balance on any Gift Card is solely the liability of Wal-Mart Stores Arkansas, LLC. Walmart Gift Cards never expire. To use at SAMS CLUB®, the holder must be a SAM'S CLUB member or a 10% service fee will apply except where prohibited.  Shopping card value may be applied toward annual Membership.  Visit help.walmart.com for the full Terms and Conditions.",
-                    "image_url": "https://uploadedimages.giftbit.com/3033/Walmartlogo-ade7409d-490b-45b7-af88-1288bd805b49.png",
-                    "tax": "NOTAX",
-                    "currencyisocode": "USD",
-                    "prices_in_cents": [
-                        500
-                    ]
-                }
-               ],
-               "number_of_results":2,
-               "info":{
-                  "code":"INFO_MARKETPLACE_RETRIEVED",
-                  "name":"Marketplace Gifts Retrieved",
-                  "message":"A list of marketplace gifts has been retrieved."
-               },
-               "limit":2,
-               "offset":0,
-               "total_count":273
-            }
-
-### retrieve marketplace gift [GET /marketplace/{id}] 
-+ Parameters
-    + id (number, required) - Retrieve a single marketplace gift by id.
-
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_ACCESS_TOKEN
-            
-+ Response 200
-
-    + Body
-
-            {
-              "marketplaceGift": {
-                "id": 1,
-                "name": "Amazon.com Gift Card",
-                "description": "Available in the US. A gift card that can be used towards any product on amazon.com. This gift is sent in US Currency.",
-                "redemption_instructions": "To get your Amazon.com gift card code, click Use Gift Now.\r\n\r\nTo redeem your gift card, follow these steps:\r\n\r\n1. Visit www.amazon.com/gc\r\n2. Click Apply to Account and enter the Claim Code when prompted.\r\n3. Gift card funds will be applied automatically to eligible orders during the checkout process.\r\n4. You must pay for any remaining balance on your order with another payment method.\r\n\r\nYour gift card claim code may also be entered when prompted during checkout. To redeem your gift card using the Amazon.com 1-Click® service, first add the gift card funds to Your Account. If you have questions about redeeming your gift card, please visit www.amazon.com/gc-redeem or contact hello@giftbit.com.",
-                "terms_and_conditions": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees.Kiind Inc., doing business as Giftbit, and/or Kiind, Corp, doing business as Giftbit through www.giftbit.com and/or through Giftbit's mobile application(s) and other services.",
-                "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-73636908-1d6b-49ec-81c9-3819b8c6c408.jpg",
-                "tax": "NOTAX",
-                "currencyisocode": "USD",
-                "vendor": {
-                  "id": 79,
-                  "name": "Amazon",
-                  "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
-                  "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees."
-                },
-                "brand": {
-                  "brand_code": "AMZNCOM",
-                  "name": "Amazon",
-                  "image_url": "https://uploadedimagestestbed.giftbit.com/80/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
-                  "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Kiind Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. ©,®,™ Amazon.com Inc. and/or its affiliates, 2013. No expiration date or service fees."
-                },
-                "regions": [
-                  {
-                    "id": 2,
-                    "name": "Across the USA",
-                    "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/card-images/AcrossUSA_224.png"
-                  }
-                ],
-                "max_price_in_cents": 50000,
-                "min_price_in_cents": 500
-              },
-              "info": {
-                "code": "INFO_MARKETPLACE_RETRIEVED",
-                "name": "Marketplace Gifts Retrieved",
-                "message": "A list of marketplace gifts has been retrieved."
-              }
-            }
-
-+ Response 422
-
-    + Body
-    
-            {
-                "error": {
-                    "code": "ERROR_MARKETPLACE_NO_SUCH_GIFT",
-                    "name": "No gift found",
-                    "message": "No gift found matching that id"
-                },
-                "status": 422
-            }
-
-
+### list marketplace [GET /marketplace]
+ 
 ## Campaign [/campaign]
-The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more marketplace gifts from the `/marketplace` endpoint that the each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
+The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more brands from the `/brands` endpoint that each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
 
 ### Handling network timeouts on creation
 
-If you receive a network timeout or other unexpected response (such as a 5xx) when creating a campaign, send the `POST` again using the same supplied `id`.  Giftbit will only ever create one campaign with a given supplied `id`. 
+If you receive a network timeout or other unexpected response (such as a 5xx) when creating a campaign, send the `POST` again using the same supplied `id`.  Giftbit will only ever create one campaign with a given supplied `id`.  It is important you choose your `id` in such a way that they are always unique across different campaigns.
 
 ### create campaign [POST /campaign]
 + Request (application/json)
@@ -558,18 +439,23 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
     + Attributes
         + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
         + subject: `Example: Please enjoy this gift!` (string, optional) - Gift email subject. Required if no supplied template.
-        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign.
-        + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, optional) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
+        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create campaign API call.
+        + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, required) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
         + `link_count`: `5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
-        + contacts: `Example: [{"email":"demo@giftbit.com"}]` (required) - A list of contact objects and is required if not providing `link_count`. A contact is a json object defined by fields: 
-                * email (required)
-                * firstname (optional)
-                * lastname (optional)
-        + `marketplace_gifts`: `Example: [{"id": 1, "price_in_cents": 1000}]` (required) - A list of one or more marketplace gifts.  Each recipient gets to choose their gift from this list.  All gifts must be the same price. A marketplace gift is a json object defined by fields: 
-                * id (required) - From the /marketplace endpoint. 
-                * price_in_cents (required) - Must be a valid price for that gift. Must either match a value in the marketplace gift's prices_in_cents list or be within the range defined by min_price_in_cents and max_price_in_cents. 
+        + contacts: `Example: [
+            {
+              "firstname": "Perry",
+              "lastname": "Johnson",
+              "email": "pjohnson2@giftbit.com"
+            }
+          ]` (required) - A list of contact objects and is required if not providing `link_count`. A contact is a json object defined by fields: 
+                        * email (required)
+                        * firstname (optional)
+                        * lastname (optional)
+        + `gift_price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
+        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
         + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
-        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.
+        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.  
         
         
     + Body 
@@ -588,12 +474,11 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                          "email":"rrobson@giftbit.com"
                      }
                 ],
-                "marketplace_gifts": [
-                    {
-                        "id":1, 
-                        "price_in_cents":1000
-                    }
-                ],
+                "gift_price_in_cents":5000,
+                "brand_codes": [
+                    "itunesus",
+                    "amazonus"
+                 ],
                 "expiry":"2018-11-01",
                 "id":"clientProvidedGiftId_abc123"
             }
@@ -610,7 +495,8 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             + message (string) - The message for the campaign.
             + subject (string) - The subject for the campaign.
             + contacts (object) - A list of contacts the campaign is being sent to.
-            + `marketplace_gifts` (object) - A list of marketplace gifts in the campaign.
+            + gift_price_in_cents (number) - The amount of the gift offer to each recipient.
+            + brand_codes (array[string]) - The brand(s) of gift cards sent.
             + status (string) - The status of the campaign. Possibilities:
                 API_CREATING - The campaign is in the process of being created.
                 AWAITING_FUNDS - The campaign has not yet been delivered to the recipient(s)
@@ -627,7 +513,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             + expiry (string) - The campaign's claim before date as described in creation parameters.
             + `contact_success_count` (number) - The number of contacts added successfully. 
             + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
-        + fees - Depending on your giftbit account some of the fields returned in the fees section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
+        + fees - Information about the cost of the campaign and any associated fees at creation or completion time.
         + id (string) - The client provided id for the campaign.  
     + Body 
     
@@ -657,11 +543,10 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                         "message":"New contact"
                      }
                   ],
-                  "marketplace_gifts":[
-                     {
-                        "price":1000,
-                        "id":1
-                     }
+                  "gift_price_in_cents": 5000,
+                  "brand_codes": [
+                        "itunesus",
+                        "amazonus"
                   ],
                   "status":"API_CREATING",
                   "uuid":"9a405b513c11413aaac593a0c2e1a15d",
@@ -714,9 +599,9 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             
             {
                 "error": {
-                    "code": "ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT",
-                    "name": "Invalid Marketplace Gift",
-                    "message": "id:216, invalid gift id"
+                    "code": "ERROR_CAMPAIGN_INVALID_BRAND",
+                    "name": "Invalid Brand or Brand/Price combination",
+                    "message": "brand_code: itunesus - gift_price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
                 },
                 "status": 422
             }
@@ -759,11 +644,9 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                         "lastname":"Robson"
                      }
                   ],
-                  "marketplace_gifts":[
-                     {
-                        "price":1000,
-                        "id":1
-                     }
+                  "gift_price_in_cents": 5000,
+                  "brand_codes": [
+                        "itunesus"
                   ],
                   "status":"CAMPAIGN_CREATED",
                   "uuid":"ee0d3f657fb640c987033e63a82e2279",
@@ -852,7 +735,7 @@ Detailed information on your sent gift offers.  A gift offer is automatically cr
 
 All date/time fields are in Pacific Standard Time.
 
-### list gifts [GET /gifts{?uuid}{?campaign_uuid}{?campaign_id}{?price_in_cents_greater_than}{?price_in_cents_less_than}{?marketplacegift_id}{?recipient_name}{?recipient_email}{?delivery_status}{?status}{?created_date_greater_than}{?created_date_less_than}{?delivery_date_greater_than}{?delivery_date_less_than}{?redelivery_count_greater_than}{?redelivery_count_less_than}{?redeemed_date_greater_than}{?redeemed_date_less_than}{?limit}{?offset}{?sort}{?order}]
+### list gifts [GET /gifts{?uuid}{?campaign_uuid}{?campaign_id}{?price_in_cents_greater_than}{?price_in_cents_less_than}{?recipient_name}{?recipient_email}{?delivery_status}{?status}{?created_date_greater_than}{?created_date_less_than}{?delivery_date_greater_than}{?delivery_date_less_than}{?redelivery_count_greater_than}{?redelivery_count_less_than}{?redeemed_date_greater_than}{?redeemed_date_less_than}{?limit}{?offset}{?sort}{?order}]
 + Request (application/json)
     + Headers
 
@@ -864,7 +747,6 @@ All date/time fields are in Pacific Standard Time.
     + `campaign_id` (string, optional) -​Filter gifts by the campaign with the matching campaign id.
     + `price_in_cents_greater_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_greater_than` can be used to filter gifts with prices in cents greater than the supplied value.
     + `price_in_cents_less_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_less_than` can be used to filter gifts with prices in cents less than the supplied value.
-    + `marketplacegift_id` (number, optional) - Filter gifts by the marketplace gift id. Gifts from a gift of choice campaign may not have this value set.
     + `recipient_name` (string, optional) - Filter gifts by the name, or part of the name of the recipient. The search string must be at least 3 characters long. 
     + `recipient_email` (string, optional) -​Filter gifts by the email address, or part of the email of the recipient. The search string must be at least 3 characters long.
     + `delivery_status` (string, optional) - Filter gifts by their delivery status. Delivery status can be one of `UNSENT`, `DELIVERED`, `UNDELIVERABLE`, `TEMPORARILY_UNDELIVERABLE`, `UNSUBSCRIBED`, `COMPLAINT`.
@@ -879,7 +761,7 @@ All date/time fields are in Pacific Standard Time.
     + `redeemed_date_less_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
     + limit (number, optional) - The maximum number of gifts to return at once. Default 20.
     + offset (number, optional) - The offset of the first gift in the total results. Default 0.
-    + sort (string, optional) - The property you'd like to sort by. Options: `campaign_id`, `price_in_cents`, `marketplacegift_id`, `recipient_name`, `recipient_email`, `delivery_status`, or status.
+    + sort (string, optional) - The property you'd like to sort by. Options: `campaign_id`, `price_in_cents`, `recipient_name`, `recipient_email`, `delivery_status`, or status.
     + order (string, optional) - The order to sort by. Options: asc or desc. Default desc.
 
 + Response 200
@@ -918,7 +800,8 @@ All date/time fields are in Pacific Standard Time.
             + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
             + `campaign_id` (string) - The id of campaign provided by the client.
             + `price_in_cents` (number) - The value of the gift offer in cents.
-            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
+            + `marketplacegift_id` (string) - DEPRECATED.  Refer to brand_code. The id of the marketplace gift associated with the offer. 
+            + `brand_code` (string) The brand of the gift offer.  Will not be set if multiple brands were included in the campaign and the recipient has not chosen their brand as part of the claim process.
             + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
         + `number_of_results` (number) - The number of gifts returned from the request.
         + limit (number) - The maximum number of gifts to be returned from the request.
@@ -939,6 +822,7 @@ All date/time fields are in Pacific Standard Time.
                      "redelivery_count":0,
                      "campaign_id":"may11",
                      "price_in_cents":500,
+                     "brand_code":"itunesus",
                      "marketplacegift_id":"1",
                      "created_date":"2016-05-11 12:18:25",
                      "delivery_date":"2016-05-11 12:18:32",
@@ -968,47 +852,7 @@ All date/time fields are in Pacific Standard Time.
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
     
 + Response 200
-    + Attributes
-        + gift
-            + uuid (string) - A unique identifier for the gift generated by Giftbit.
-            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
-            + `delivery_status` (string) - The delivery status of the gift.
-                
-                    UNSENT - The gift has been created but is not yet sent.
-                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
-                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
-                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
-                        caused by attempting to send a gift to an email address that does not exist. We
-                        suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.
-                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
-                        issue to this recipient. This can be caused by issues like a full mailbox for their email
-                        address. While they may eventually get their gift, It is not guaranteed so we suggest
-                        following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.
-                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
-                        previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.
-                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
-                        them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.
-                
-            + status (string) - The status of the gift offer.
-                
-                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
-                    REDEEMED - The gift offer has been claimed.
-                    TO_CHARITY - The gift offer has been given to charity.
-                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
-                    EXPIRED - The gift offer is expired because its claim before passed before it was redeemed.
-                
-            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
-            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
-            + `campaign_id` (string) - The id of campaign provided by the client.
-            + `price_in_cents` (number) - The value of the gift offer in cents.
-            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
-            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
-        + info
-            + code (string) - Status code of request. [INFO_GIFTS]
+   
     + Body
         
             {
@@ -1021,6 +865,7 @@ All date/time fields are in Pacific Standard Time.
                   "redelivery_count":0,
                   "campaign_id":"may11",
                   "price_in_cents":500,
+                  "brand_code":"itunesus",
                   "marketplacegift_id":"1",
                   "created_date":"2016-05-11 12:18:25",
                   "delivery_date":"2016-05-11 12:18:32",
@@ -1051,47 +896,7 @@ All date/time fields are in Pacific Standard Time.
     
     
 + Response 200
-    + Attributes
-        + gift
-            + uuid (string) - A unique identifier for the gift generated by Giftbit.
-            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
-            + `delivery_status` (string) - The delivery status of the gift.
-                
-                    UNSENT - The gift has been created but is not yet sent.
-                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
-                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
-                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
-                        caused by attempting to send a gift to an email address that does not exist. We
-                        suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.
-                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
-                        issue to this recipient. This can be caused by issues like a full mailbox for their email
-                        address. While they may eventually get their gift, It is not guaranteed so we suggest
-                        following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.
-                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
-                        previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.
-                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
-                        them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.
-                
-            + status (string) - The status of the gift offer.
-                
-                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
-                    REDEEMED - The gift offer has been claimed.
-                    TO_CHARITY - The gift offer has been given to charity.
-                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
-                    EXPIRED - The gift offer is expired because its claim before passed before it was redeemed.
-                
-            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
-            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
-            + `campaign_id` (string) - The id of campaign provided by the client.
-            + `price_in_cents` (number) - The value of the gift offer in cents.
-            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
-            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
-        + info
-            + code (string) - Status code of request. [INFO_GIFTS_RESENT]
+   
     + Body
 
             {
@@ -1105,6 +910,7 @@ All date/time fields are in Pacific Standard Time.
                   "recipient_email":"tim+1@giftbit.com",
                   "recipient_name":"tim1",
                   "price_in_cents":500,
+                  "brand_code": "itunesus",
                   "marketplacegift_id":"1",
                   "created_date":"2016-05-11 14:18:44",
                   "delivery_date":"2016-05-11 14:18:47"
@@ -1127,47 +933,7 @@ All date/time fields are in Pacific Standard Time.
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
     
 + Response 200
-    + Attributes
-        + gift
-            + uuid (string) - A unique identifier for the gift generated by Giftbit.
-            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
-            + `delivery_status` (string) - The delivery status of the gift.
-                
-                    UNSENT - The gift has been created but is not yet sent.
-                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
-                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
-                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
-                        caused by attempting to send a gift to an email address that does not exist. We
-                        suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.
-                    TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
-                        issue to this recipient. This can be caused by issues like a full mailbox for their email
-                        address. While they may eventually get their gift, It is not guaranteed so we suggest
-                        following up with this recipient and resending their gift if necessary via the web
-                        interface or the /gifts API endpoint.
-                    UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
-                        previous gift offer email. You should remove them from all future campaigns as Giftbit
-                        will return an error if you attempt to send to them again.
-                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
-                        them from all future campaigns as Giftbit will return an error if you attempt to send to
-                        them again.
-                
-            + status (string) - The status of the gift offer.
-                
-                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
-                    REDEEMED - The gift offer has been claimed.
-                    TO_CHARITY - The gift offer has been given to charity.
-                    GIVER_CANCELLED - The gift offer was cancelled by the sender.
-                    EXPIRED - The gift offer is expired because its claim before passed before it was redeemed.
-                
-            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
-            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
-            + `campaign_id` (string) - The id of campaign provided by the client.
-            + `price_in_cents` (number) - The value of the gift offer in cents.
-            + `marketplacegift_id` (string) - The id of the marketplace gift associated with the offer. Note this may be null if the campaign contains more than one marketplace gifts.
-            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
-        + info
-            + code (string) - Status code of request. [INFO_GIFTS_CANCELED]
+    
     + Body
     
             {
@@ -1180,6 +946,7 @@ All date/time fields are in Pacific Standard Time.
                   "redelivery_count":0,
                   "campaign_id":"may11",
                   "price_in_cents":500,
+                  "brand_code":"itunesus",
                   "marketplacegift_id":"1",
                   "created_date":"2016-05-11 12:18:25",
                   "delivery_date":"2016-05-11 12:18:32",
