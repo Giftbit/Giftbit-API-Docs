@@ -692,10 +692,9 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 ## Funds [/funds]
 Real-time information on your account funding.
 
-TODO:
-* you need a credit card on file. set in web app
-* subject to minimums shown in web app (should this be inlcuded in the api call to /get somewhere?)
-* subject to the same credit card fees seen in webapp
+a `POST` to the `/funds` endpoint allows you to add funds to your account. Some configuration must first be completed in the web application. You will need a credit card on file for the currencies you plan to fund. Next, take note of the funding fee and minimum charge amount. Both of those details can be found under `Purchase Credits` -> `Auto-charge`. The response to `POST` `/funds` is your updated account balances.
+
+If you receive a network timeout or other unexpected response (such as a 5xx) when creating a funding event, send the `POST` again using the same supplied `id`. Giftbit will only ever create one funding event with a given supplied `id`. It is important you choose your `id` in such a way that they are always unique across different funding events.
 
 ### retrieve funding information [GET /funds] 
 + Request (application/json)
