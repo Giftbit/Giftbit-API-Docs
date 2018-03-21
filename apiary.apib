@@ -141,6 +141,8 @@ Example:
 
 **401/403:** An authentication or authorization failure.  Generally related to a missing or invalid `access_token`.  Ensure you are authenticating correctly.
 
+**402:** Credit Card charge failure. Request was correct, but card was not charged.
+
 ***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
 
 ***429:*** Too many requests.  The API allows you to make 4 requests per second.  Retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for `POST` requests to the `/campaign` endpoint.
@@ -690,6 +692,11 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 ## Funds [/funds]
 Real-time information on your account funding.
 
+TODO:
+* you need a credit card on file. set in web app
+* subject to minimums shown in web app (should this be inlcuded in the api call to /get somewhere?)
+* subject to the same credit card fees seen in webapp
+
 ### retrieve funding information [GET /funds] 
 + Request (application/json)
     + Headers
@@ -729,7 +736,98 @@ Real-time information on your account funding.
               }
             }
 
+### add funds through credit card [POST /funds]
++ Request (application/json)
+    + Headers
 
+            Authorization: Bearer YOUR_ACCESS_TOKEN
+
+    + Attributes
+        + currencyisocode: `Example: USD` (string, required) - Which currency to add funds in. Options:
+        * CAD
+        * USD
+        + fund_amount_in_cents: `25000` (number, required) - Amount of money to fund in cents. Subject to minimums that can be found in the webapp under autofunding.
+        + id: `Example: abc123` (string, required) - An identifier for the funding event assigned by the client (you).  Must be unique across all your funding events.  If an unexpected error occurs, you can safely send the same POST again with the same `id`.
+    
+    + Body 
+    
+            {
+                "currencyisocode": "USD",
+                "fund_amount_in_cents": 25000,
+                "id": "clientProvidedId_abc123"
+            }
+        
++ Response 200
+    + Attributes
+        + fundsbycurrency - USD, CAD, PRO (demo credits)
+        + `available_in_cents` (number) - Value, in cents of available funds in your account. This is your purchasing power for new gift campaigns.
+        + `pending_in_cents` (number) - Value, in cents, of funds for your account that have been sent by you but yet fully processed by Giftbit. These will move to available balance once processed.
+        + `reserved_in_cents` (number) - Value, in cents, of funds that are held to cover the cost of outstanding gift offers that have not yet been claimed and are still within the claim before date.
+    + Body
+
+            {
+              "info": {
+                "code": "INFO_FUNDS_ADDED",
+                "name": "Funds updated",
+                "message": "Your funds have been updated."
+              },
+              "fundsbycurrency": {
+                "USD": {
+                  "available_in_cents": 196525,
+                  "pending_in_cents": 0,
+                  "reserved_in_cents": 41500
+                },
+                "CAD": {
+                  "available_in_cents": 6600,
+                  "pending_in_cents": 0,
+                  "reserved_in_cents": 1000
+                },
+                "PRO": {
+                  "available_in_cents": 0,
+                  "pending_in_cents": 0,
+                  "reserved_in_cents": 0
+                }
+              }
+            }
+            
++ Response 402
+    + Attributes
+        + status (number) - the http status code
+        + error 
+            + code (string) - An enum-style error code desribing the reason for failure.
+            + name (string) - human readable error name
+            + message (string) - request context specific error message
+                   
+    + Body
+            
+            {
+                "error": {
+                    "code": "ERROR_FUNDS_CARD_ERROR",
+                    "name": "Credit card transaction failed",
+                    "message": "Transaction failed. We were unable to charge your card. Go to web app to update your credit card."
+                },
+                "status": 402
+            }
+
++ Response 400
+    + Attributes
+        + status (number) - the http status code
+        + error 
+            + code (string) - An enum-style error code desribing the reason for failure.
+            + name (string) - human readable error name
+            + message (string) - request context specific error message
+                   
+    + Body
+            
+            {
+                "error": {
+                    "code": "ERROR_FUNDS_INVALID_FUND_AMOUNT",
+                    "name": "Invalid fund amount.",
+                    "message": "10000 is an invalid fund amount. Minimum in cents: 25000, Maximum in cents: 1000000"
+                },
+                "status": 400
+            }
+ 
 ## Gifts [/gifts]
 Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient or shortlink when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.
 
