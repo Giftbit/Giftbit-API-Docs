@@ -692,7 +692,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 ## Funds [/funds]
 `GET` returns real-time information on your account funding overview. For per funding event detail, you can request a report through the web application. 
 
-`POST` allows you to add funds to your account. Some configuration must first be completed in the web application. You will need a credit card on file for the currencies you plan to fund. Next, take note of the funding fee and minimum charge amount. Both of those details can be found under "Purchase Credits -> Auto-charge in the web application". The response to `POST` `/funds` is your updated account balances.
+`POST` allows you to add funds to your account. Some configuration must first be completed in the web application. You will need a credit card on file for the currencies you plan to fund. Next, take note of the funding fee and minimum charge amount. Both of those details can be found under "Purchase Credits -> Auto-charge" in the web application. The response to `POST` `/funds` is your updated account balances.
 
 If you receive a network timeout or other unexpected response (such as a 5xx) when creating a funding event, send the `POST` again using the same supplied `id`. Giftbit will only ever create one funding event with a given supplied `id`. It is important you choose your `id` in such a way that they are always unique across different funding events.
 
@@ -742,10 +742,8 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             Authorization: Bearer YOUR_ACCESS_TOKEN
 
     + Attributes
-        + currencyisocode: `Example: USD` (string, required) - Which currency to add funds in. Options:
-        * CAD
-        * USD
-        + fund_amount_in_cents: `25000` (number, required) - Amount of money to fund in cents. Subject to minimums that can be found in the webapp under autofunding.
+        + currencyisocode: `Example: USD` (string, required) - Which currency to add funds in. Options: CAD, USD
+        + fund_amount_in_cents: `25000` (number, required) - Amount of money to fund in cents. Subject to minimums that can be found in the web application under "Purchase Credits -> Auto-charge".
         + id: `Example: abc123` (string, required) - An identifier for the funding event assigned by the client (you).  Must be unique across all your funding events.  If an unexpected error occurs, you can safely send the same POST again with the same `id`.
     
     + Body 
