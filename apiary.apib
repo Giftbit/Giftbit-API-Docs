@@ -425,6 +425,14 @@ If you are planning to make any changes to your implementation, we strongly reco
 
 ### list marketplace [GET /marketplace]
  
+## Data Structures
+
+### Contact
++ email: pjohnson@giftbit.com (required)
++ firstname: Perry (optional)
++ lastname: Johnson (optional) 
+
+ 
 ## Campaign [/campaign]
 The `/campaign` endpoint is the heart of the Giftbit API.  A Campaign represents a gift offer to one or more recipients, and one or more brands from the `/brands` endpoint that each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
 
@@ -444,16 +452,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
         + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create campaign API call.
         + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, required) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
         + `link_count`: `5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
-        + contacts: `Example: [
-            {
-              "firstname": "Perry",
-              "lastname": "Johnson",
-              "email": "pjohnson2@giftbit.com"
-            }
-          ]` (required) - A list of contact objects and is required if not providing `link_count`. A contact is a json object defined by fields: 
-                        * email (required)
-                        * firstname (optional)
-                        * lastname (optional)
+        + contacts: (array[Contact], required) - A list of contact objects and is required if not providing `link_count`.
         + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
         + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
