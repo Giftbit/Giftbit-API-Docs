@@ -146,7 +146,7 @@ Example:
 
 ***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
 
-***429:*** Too many requests.  The API allows you to make 4 requests per second.  Retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for `POST` requests to the `/campaign` endpoint.
+***429:*** Too many requests.  The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns.  It is recommended that if you do recieve a 429 response, your code automatically retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for any request.  If you feel you are being frequently rate limited in a valid usage pattern, please contact support.
 
 ***5xx:*** An unexpected error on the Giftbit side.  Retry the request, and if failures persist contact support.  Note that the response body format in the 5xx case may not match the common error response format described.
 
