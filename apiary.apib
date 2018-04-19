@@ -195,57 +195,6 @@ A successful response will include the name and email of the Giftbit account ass
             }
         }
 
-## Regions [/regions]
-
-Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
-
-## list regions [GET /regions]
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_API_KEY
-            
-+ Response 200
-    + Attributes
-        + regions 
-            + id (number) - A numeric identifier for the region.
-            + name (string) - The name of the region.
-            + `image_url` (string) - An image for the region.
-        + info
-            + code (string) - Status code. [`INFO_RETRIEVED_REGIONS`]
-    
-    + Body
-            
-            {
-                "regions": [
-                    {
-                        "id": 1,
-                        "name": "Canada",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/CA@3x.png"
-                    },
-                    {
-                        "id": 2,
-                        "name": "USA",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/US@3x.png"
-                    },
-                    {
-                        "id": 3,
-                        "name": "Global",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/GLBL@3x.png"
-                    },
-                    {
-                        "id": 4,
-                        "name": "Australia",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/AU@3x.png"
-                    }
-                ],
-                "info": {
-                    "code": "INFO_RETRIEVED_REGIONS",
-                    "name": "Regions Retrieved",
-                    "message": "A list of regions has been retrieved."
-                }
-            }
-        
 
 ## Brands [/brands]
 The `/brands` endpoint returns Giftbit's gift card brands available to you.   It provides complete search, filter, and paging functionality and is used in all use cases.
@@ -382,12 +331,56 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
                 "status": 422
             }
 
-## Marketplace [/marketplace]
-The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed and improved into `/brands`.  Note that if you have built your `/campaign` calls providing marketplace_gifts, they will still continue to function and the request and response bodies will be unchanged so your implementation will not break. (Note, therefore, they may not exactly match the current `/campaign` documentation).
+## Regions [/regions]
 
-If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
+Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
 
-### list marketplace [GET /marketplace]
+## list regions [GET /regions]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+            
++ Response 200
+    + Attributes
+        + regions 
+            + id (number) - A numeric identifier for the region.
+            + name (string) - The name of the region.
+            + `image_url` (string) - An image for the region.
+        + info
+            + code (string) - Status code. [`INFO_RETRIEVED_REGIONS`]
+    
+    + Body
+            
+            {
+                "regions": [
+                    {
+                        "id": 1,
+                        "name": "Canada",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/CA@3x.png"
+                    },
+                    {
+                        "id": 2,
+                        "name": "USA",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/US@3x.png"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Global",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/GLBL@3x.png"
+                    },
+                    {
+                        "id": 4,
+                        "name": "Australia",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/AU@3x.png"
+                    }
+                ],
+                "info": {
+                    "code": "INFO_RETRIEVED_REGIONS",
+                    "name": "Regions Retrieved",
+                    "message": "A list of regions has been retrieved."
+                }
+            }
  
 ## Data Structures
 
@@ -1085,3 +1078,10 @@ Retrieve shortlinks for your link based gift offer campaigns.  After creating a 
                   "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
                }
             }
+            
+## Marketplace [/marketplace]
+The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed and improved into `/brands`.  Note that if you have built your `/campaign` calls providing marketplace_gifts, they will still continue to function and the request and response bodies will be unchanged so your implementation will not break. (Note, therefore, they may not exactly match the current `/campaign` documentation).
+
+If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
+
+### list marketplace [GET /marketplace]
