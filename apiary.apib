@@ -5,8 +5,8 @@ HOST: https://api-testbed.giftbit.com/papi/v1
 Giftbit's RESTFul API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow. 
 This document includes a definitive list of endpoints defined under the 'Reference' section, along with common use cases, error code reference, and code examples. 
 
-You can try all of the API calls directly from this interactive document (or your preferred REST client) with an `access_token` from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
-Once you sign-up you'll receive a welcome email containing everything you need to create an `access_token` and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
+You can try all of the API calls directly from this interactive document (or your preferred REST client) with an API key from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
+Once you sign-up you'll receive a welcome email containing everything you need to create an API key and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
 
 ## Environments and URLs
 
@@ -24,13 +24,14 @@ Contact the Giftbit API support team at testbed@giftbit.com when you are ready f
 There are a few key differences between Giftbit’s Testbed and production APIs designed to make building and testing your integration as easy and safe as possible:
 * All gift emails sent through Testbed will not go to the specified recipient email but instead be sent to the email address you provided for your testbed account signup, allowing you to test the full gifting process safely.
 * Gift emails from Testbed all have a header identifying them as test emails.
-* The brands in testbed are not reflective of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list. Or access the `/brands` endpoint with your production API token
-* You will have a different API token for Testbed and production.
+* The brands in testbed are not a complete list of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list. Or access the `/brands` endpoint with your production API key.
+* You will have a different API keys for Testbed and production.
 * All of your account settings are set separately in testbed and production.
 * To encourage continuous integration testing against our Testbed API, you will be given a very large initial account balance on your Testbed account. A test credit card (no real charges) will also be attached to the Testbed account so you can add more funds, if needed, from your funding dashboard.
-* In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns, but it is not a requirement.
+* In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns manually or automatically, but it is not a requirement.
     
-
+## Authentication
+Authenticate with the Giftbit API by sending your API key prefixed by the word `Bearer` (case sensitive) and a space in the “Authorization” HTTP header.  The /ping endpoint is a convenient way to test your authentication.
 
 ## Common Use Cases
 Depending on your use case, there are several different options for creating gift offers through the API. 
@@ -139,13 +140,13 @@ Example:
 
 **400:** Error due to a malformed request body such as broken JSON or missing required element.  Requires fixing up the request body.
 
-**401/403:** An authentication or authorization failure.  Generally related to a missing or invalid `access_token`.  Ensure you are authenticating correctly.
+**401/403:** An authentication or authorization failure.  Generally related to a missing or invalid API key.  Ensure you are authenticating correctly.
 
 **402:** Credit Card charge failure. Request was correct, but card was not charged.
 
 ***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
 
-***429:*** Too many requests.  The API allows you to make 4 requests per second.  Retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for `POST` requests to the `/campaign` endpoint.
+***429:*** Too many requests.  The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns.  It is recommended that if you do recieve a 429 response, your code automatically retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for any request.  If you feel you are being frequently rate limited in a valid usage pattern, please contact support.
 
 ***5xx:*** An unexpected error on the Giftbit side.  Retry the request, and if failures persist contact support.  Note that the response body format in the 5xx case may not match the common error response format described.
 
@@ -153,17 +154,15 @@ Example:
 
 The Giftbit team makes heavy use of external APIs ourselves, and we know how frustrating it can be when the documentation is unclear or doesn't match the actual API behaviour.  If you find any such problems with ours, don't hesitate to let us know via testbed@giftbit.com
 
-## Authentication [/]
-You can authenticate in one of two ways when making API calls:
-* Include your token prefixed by the word ‘Bearer’ (case sensitive) and a space in the “Authorization” HTTP header. The examples in this document use this format and it is recommended.
-* Include the token in “access_token” as a URL parameter. You will need to URL encode your token if using this method.
+## Ping [/ping]
+The ping endpoint provides a quick and convenient way to test your authentication and allows you to healthcheck the Giftbit API if desired.
+A successful response will include the name and email of the Giftbit account associated with the API key used for authentication.
 
-
-### authenticate using header [GET /]
+### ping [GET /ping]
 + Request
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
     
 + Response 200
     + Attributes
@@ -195,93 +194,7 @@ You can authenticate in one of two ways when making API calls:
                 "message": "Access Token missing or invalid"
             }
         }
-    
 
-### authenticate using access token in parameters [GET /{?access_token}]
-+ Parameters 
-    + access_token
-    
-+ Response 200
-    + Attributes
-        + username (string) - The username associated with the credentials provided.
-        + displayname (string) - The display name associated with the credentials provided.
-        + info 
-            + code (string) - Status code for the request. Values
-                    INFO_CREDENTIALS - Credentials are valid.
-            + Body
-                {
-                    "username":"example_merchant@giftbit.com",
-                    "displayname":"Example Merchant",
-                    "info":
-                        {
-                            "code":"INFO_CREDNTIALS",
-                            "name":"Credentials are valid",
-                            "message":"The credentials used are valid and login attempt was successful."
-                        }
-                }
-        
-+ Response 401
-
-        {
-            "status":401,
-            "error":{
-                "code": "ERROR_UNAUTHORIZED",
-                "name": "Unauthorized",
-                "message": "Access Token missing or invalid"
-            }
-        }
-
-## Regions [/regions]
-
-Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
-
-## list regions [GET /regions]
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_ACCESS_TOKEN
-            
-+ Response 200
-    + Attributes
-        + regions 
-            + id (number) - A numeric identifier for the region.
-            + name (string) - The name of the region.
-            + `image_url` (string) - An image for the region.
-        + info
-            + code (string) - Status code. [`INFO_RETRIEVED_REGIONS`]
-    
-    + Body
-            
-            {
-                "regions": [
-                    {
-                        "id": 1,
-                        "name": "Canada",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/CA@3x.png"
-                    },
-                    {
-                        "id": 2,
-                        "name": "USA",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/US@3x.png"
-                    },
-                    {
-                        "id": 3,
-                        "name": "Global",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/GLBL@3x.png"
-                    },
-                    {
-                        "id": 4,
-                        "name": "Australia",
-                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/AU@3x.png"
-                    }
-                ],
-                "info": {
-                    "code": "INFO_RETRIEVED_REGIONS",
-                    "name": "Regions Retrieved",
-                    "message": "A list of regions has been retrieved."
-                }
-            }
-        
 
 ## Brands [/brands]
 The `/brands` endpoint returns Giftbit's gift card brands available to you.   It provides complete search, filter, and paging functionality and is used in all use cases.
@@ -307,7 +220,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
 
 + Response 200
 
@@ -358,7 +271,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Response 200
 
@@ -418,12 +331,56 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
                 "status": 422
             }
 
-## Marketplace [/marketplace]
-The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed and improved into `/brands`.  Note that if you have built your `/campaign` calls providing marketplace_gifts, they will still continue to function and the request and response bodies will be unchanged so your implementation will not break. (Note, therefore, they may not exactly match the current `/campaign` documentation).
+## Regions [/regions]
 
-If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
+Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
 
-### list marketplace [GET /marketplace]
+## list regions [GET /regions]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+            
++ Response 200
+    + Attributes
+        + regions 
+            + id (number) - A numeric identifier for the region.
+            + name (string) - The name of the region.
+            + `image_url` (string) - An image for the region.
+        + info
+            + code (string) - Status code. [`INFO_RETRIEVED_REGIONS`]
+    
+    + Body
+            
+            {
+                "regions": [
+                    {
+                        "id": 1,
+                        "name": "Canada",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/CA@3x.png"
+                    },
+                    {
+                        "id": 2,
+                        "name": "USA",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/US@3x.png"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Global",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/GLBL@3x.png"
+                    },
+                    {
+                        "id": 4,
+                        "name": "Australia",
+                        "image_url": "https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/AU@3x.png"
+                    }
+                ],
+                "info": {
+                    "code": "INFO_RETRIEVED_REGIONS",
+                    "name": "Regions Retrieved",
+                    "message": "A list of regions has been retrieved."
+                }
+            }
  
 ## Data Structures
 
@@ -444,7 +401,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
 
     + Attributes
         + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
@@ -612,7 +569,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Parameters
     + `id_or_uuid`: clientProvidedGiftId_abc123 (required) - The campaign id or uuid. The id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
@@ -699,7 +656,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Response 200
     + Attributes
@@ -738,7 +695,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
 
     + Attributes
         + currencyisocode: `Example: USD` (string, required) - Which currency to add funds in. Options: CAD, USD
@@ -833,7 +790,7 @@ All date/time fields are in Pacific Standard Time.
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Parameters
     + uuid (string, optional) - Return the gift with matching uuid.
@@ -940,7 +897,7 @@ All date/time fields are in Pacific Standard Time.
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
@@ -980,7 +937,7 @@ All date/time fields are in Pacific Standard Time.
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
     + Attributes
         + resend: true (boolean, required)
@@ -1021,7 +978,7 @@ All date/time fields are in Pacific Standard Time.
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
@@ -1061,7 +1018,7 @@ Retrieve shortlinks for your link based gift offer campaigns.  After creating a 
 + Request (application/json)
     + Headers
 
-            Authorization: Bearer YOUR_ACCESS_TOKEN
+            Authorization: Bearer YOUR_API_KEY
             
 + Parameter
     + `id_or_uuid` (number, required) - The client provided id of the campaign or the uuid assigned by Giftbit.
@@ -1121,3 +1078,10 @@ Retrieve shortlinks for your link based gift offer campaigns.  After creating a 
                   "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
                }
             }
+            
+## Marketplace [/marketplace]
+The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed and improved into `/brands`.  Note that if you have built your `/campaign` calls providing marketplace_gifts, they will still continue to function and the request and response bodies will be unchanged so your implementation will not break. (Note, therefore, they may not exactly match the current `/campaign` documentation).
+
+If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
+
+### list marketplace [GET /marketplace]
