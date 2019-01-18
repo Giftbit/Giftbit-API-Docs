@@ -33,55 +33,49 @@ There are a few key differences between Giftbit’s Testbed and production APIs 
 ## Authentication
 Authenticate with the Giftbit API by sending your API key prefixed by the word `Bearer` (case sensitive) and a space in the “Authorization” HTTP header.  The /ping endpoint is a convenient way to test your authentication.
 
-## Common Use Cases
-Depending on your use case, there are several different options for creating gift offers through the API. 
-In all cases creating and sending a gift offer involves creating a campaign using the `/campaign` endpoint. A campaign
-consists of a price of the gift(s) you are offering, one or more brands, and one or more contacts. If your use case requires delivering the gifts
-via a unique shortlink then you can omit contacts and simply provide a `link_count` in the request.
-<br><br>
-The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your campaign, in particular the brand_code and an allowed price for the brand. 
+## Getting Started
+
+The Giftbit API is designed to be simple yet powerful to support the best possible way of delivering your gift offers to your recipients.  This mini-guide describes the main way to think about your integration.  
+
+### Step 1: Determine the brand(s) you want to send
+
+The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls. 
 Depending on the brand, some only allow certain gift values while others have an allowed range.
 <br><br>
+**Important:** The testbed `/brands` endpoint only returns a small subset of available production brands. See https://www.giftbit.com/rewards/ for the list available via the production API.   
 
-### Sending Predefined Brand(s) with Each Offer
+#### Sending Predefined Brand(s) with Each Offer
 A simple yet popular API use case is to set up a certain brand or choice of brands that is always used when
 sending campaigns. In this use case, you'd retrieve the `brand_code` of each brand you want to send
 manually through the `/brands` endpoint, choose a valid and desired gift price, and store them in your database or configuration.
-Then, whenever you wish to create a campaign through the API, you'd provide those same predefined brand_codes and the price.  If you include more than one brand in a campaign, the recipient will get to choose their desired brand as part of the claim process.
+Then, whenever you wish to create a gift offer through the API, you'd provide the same predefined brand_code(s) and the price.  If you include more than one brand in a campaign (email delivery only), the recipient will get to choose their desired brand as part of the claim process.
 
-### Providing an Interactive Brand Marketplace 
+#### Providing an Interactive Brand Marketplace 
 Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
 In this type of integration, you use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
 capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
-## Delivery Types
-Giftbit has two delivery types for your gift offers: `GIFTBIT_EMAIL` and `SHORTLINK`. Note that in each case
-the content Giftbit provides to the recipient is the same (the Giftbit email content is the same as the shortlink
-destination web page) so all information around branding, templates, and gift content applies to both delivery
-types. All reporting and statistics are available for both delivery methods.
+### Step 2: Ensure your account is set up and funded (move this to 'final thoughts' or not at all?)
+
+### Step 2: Deliver your gift offer(s)
+Giftbit has two API-based delivery types for your gift offers: via email or embedded within your app or web flow. All reporting and statistics are available for both delivery methods.
 
 ### Giftbit Email Delivery
 If you have email addresses for your recipients, email delivery is the recommended fastest and most
 reliable delivery method. Giftbit specializes in email deliverability and trusted best practices. We will deliver
-your branded gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
+your customized branded gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
 deliverability issues are made available to you so that you can keep your recipient lists clean and of high
-quality. You must include one or more recipients to send the offer to in your campaign creation request, and
-the `delivery_type` parameter may be omitted or set to `GIFTBIT_EMAIL`.
+quality. 
 
-### Shortlink Delivery (for delivering the gifts yourself)
-In the cases where email-based delivery is not appropriate or you do not have email addresses for your
-recipients, you may create a campaign where each gift offer is represented by a unique shortlink. 
-To do so you set the `delivery_type` parameter to `SHORTLINK` and provide either a `link_count` or a list of contacts.
-You can retrieve the links via the `/links` or `/gifts` endpoint which are usually ready within minutes. You can then deliver them yourself to your recipients physically or
-digitally as you see fit for ultimate flexibility. 
-<br><br>
-When using `delivery_type` of `SHORTLINK` and providing contacts, Giftbit does NOT deliver an email to
-those contacts. The ability to provide contacts for shortlink campaigns is so that you can correlate your links
-to given recipients in our system without needing to keep track of it
-in yours.  This correlation is visible anywhere we provide your gift offer history
-information including reports, the web application, and the /gifts endpoint.  It is up to you to ensure you deliver the correct link to the corresponding contact. Alternatively, when providing just 
-a `link_count` you can retrieve redemption information for each link so it's possible to correlate link redemption information with
-recipients in your system.
+Email delivery is done via the `/campaign` endpoint as described in the Reference section.
+
+### In-App Delivery
+In-App delivery is done via the `/embedded` endpoint as described in the Reference section.
+
+### Shortlink Delivery (for delivering gift offers yourself via a unique URL)
+In the cases where email-based delivery is not appropriate or you do not want to embed the gift within your application experience, you may create a campaign where each gift offer is represented by a unique shortlink that you can deliver in any way you wish.   These shortlinks are ordered and delivered to you through our web application interface, and you do not need to integrate with the API.
+
+If you think you require link based gift offer delivery in an automated API driven flow, please contact us at FILL IN.
 
 ## Templates
 Templates allow your gift messages to be richly formatted and provide a nice separation of responsibility
@@ -408,8 +402,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
         + subject: `Example: Please enjoy this gift!` (string, optional) - Gift email subject. Required if no supplied template.
         + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create campaign API call.
         + `delivery_type`: `Example: GIFTBIT_EMAIL` (string, required) - Determines if Giftbit will deliver the gift offers via email or create shortlinks for you to deliver yourself. Options `[GIFTBIT_EMAIL, SHORTLINK]`.
-        + `link_count`: `5` (number, optional) - ​Only for use with delivery_type of SHORTLINK. Sets how many links to create. Cannot be used in conjunction with contacts.
-        + contacts: (array[Contact], required) - A list of contact objects and is required if not providing `link_count`.
+        + contacts: (array[Contact], required) - A list of contact objects and is required.
         + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
         + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
@@ -466,8 +459,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             + `delivery_type` (string) - The delivery type of the campaign. Possibilities:
                 
                     GIFTBIT_EMAIL
-                    SHORTLINK
-                
+
             + expiry (string) - The campaign's claim before date as described in creation parameters.
             + `contact_success_count` (number) - The number of contacts added successfully. 
             + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
@@ -782,7 +774,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             }
  
 ## Gifts [/gifts]
-Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient or shortlink when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.
+Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.
 
 All date/time fields are in Pacific Standard Time.
 
@@ -823,7 +815,7 @@ All date/time fields are in Pacific Standard Time.
             + `delivery_status` (string) - The delivery status of the gift.
                     UNSENT - The gift has been created but is not yet sent.
                     DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
-                    LINKCREATED - The gift is of delivery type SHORTLINK and it has been created and is ready to be redeemed.
+                    LINKCREATED - Deprecated.
                     UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
                         caused by attempting to send a gift to an email address that does not exist. We
                         suggest double-checking the recipient address and changing or removing it for future
@@ -843,7 +835,7 @@ All date/time fields are in Pacific Standard Time.
                 
                     SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
                     REDEEMED - The gift offer has been claimed.
-                    TO_CHARITY - The gift offer has been given to charity.
+                    TO_CHARITY - Deprecated.
                     GIVER_CANCELLED - The gift offer was canceled by the sender.
                     EXPIRED - The gift offer is expired because its claim before passed before it was redeemed.
                 
@@ -853,7 +845,7 @@ All date/time fields are in Pacific Standard Time.
             + `price_in_cents` (number) - The value of the gift offer in cents.
             + `marketplacegift_id` (string) - DEPRECATED.  Refer to brand_code. The id of the marketplace gift associated with the offer. 
             + `brand_code` (string) The brand of the gift offer.  Will not be set if multiple brands were included in the campaign and the recipient has not chosen their brand as part of the claim process.
-            + `shortlink` (string) - A link to the gift offer. Only available if campaign is of type SHORTLINK.
+            + `shortlink` (string) - Deprecated.
         + `number_of_results` (number) - The number of gifts returned from the request.
         + limit (number) - The maximum number of gifts to be returned from the request.
         + offset (number) - The offset into the gifts returned from the request.
@@ -867,7 +859,7 @@ All date/time fields are in Pacific Standard Time.
                   {
                      "uuid":"d30be501ed2546e580c5c9eaf56633d9",
                      "campaign_uuid":"8f5835dfb637413793c5d55f8ea95e23",
-                     "delivery_status":"LINKCREATED",
+                     "delivery_status":"DELIVERED",
                      "status":"SENT_AND_REDEEMABLE",
                      "management_dashboard_link":"http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=8f5835dfb637413793c5d55f8ea95e23&gift_uuid=d30be501ed2546e580c5c9eaf56633d9",
                      "redelivery_count":0,
@@ -877,7 +869,6 @@ All date/time fields are in Pacific Standard Time.
                      "marketplacegift_id":"1",
                      "created_date":"2016-05-11 12:18:25",
                      "delivery_date":"2016-05-11 12:18:32",
-                     "shortlink":"http://gtbt.co/S6Km75LFeWQ"
                   }
                ],
                "number_of_results":1,
@@ -910,7 +901,7 @@ All date/time fields are in Pacific Standard Time.
                "gift":{
                   "uuid":"d30be501ed2546e580c5c9eaf56633d9",
                   "campaign_uuid":"8f5835dfb637413793c5d55f8ea95e23",
-                  "delivery_status":"LINKCREATED",
+                  "delivery_status":"DELIVERED",
                   "status":"SENT_AND_REDEEMABLE",
                   "management_dashboard_link":"http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=8f5835dfb637413793c5d55f8ea95e23&gift_uuid=d30be501ed2546e580c5c9eaf56633d9",
                   "redelivery_count":0,
@@ -920,7 +911,6 @@ All date/time fields are in Pacific Standard Time.
                   "marketplacegift_id":"1",
                   "created_date":"2016-05-11 12:18:25",
                   "delivery_date":"2016-05-11 12:18:32",
-                  "shortlink":"http://gtbt.co/S6Km75LFeWQ"
                },
                "info":{
                   "code":"INFO_GIFTS",
@@ -1010,78 +1000,3 @@ All date/time fields are in Pacific Standard Time.
                },
                "status":200
             }
-
-## Links [/links]
-Retrieve shortlinks for your link based gift offer campaigns.  After creating a SHORTLINK campaign, you can  immediately begin polling this endpoint (we recommend a one minute poll interval) and checking the `info`.`code` value.  It will change from `INFO_LINKS_GENERATION_IN_PROGRESS` to `INFO_LINKS` when the links are available (and they will be included in the response) as per the documented response body.
-
-### retrieve shortlinks by id or uuid [GET /links/{id_or_uuid}{?limit}{?offset}]
-+ Request (application/json)
-    + Headers
-
-            Authorization: Bearer YOUR_API_KEY
-            
-+ Parameter
-    + `id_or_uuid` (number, required) - The client provided id of the campaign or the uuid assigned by Giftbit.
-    + limit (number, optional) - Limits the number of results to the provided value. The default value is 50.
-    + offset (number, optional) - Offsets the results by provided value. Used for paging through results. The default value is 0.
-            
-+ Response 200
-    + Attributes
-        + info
-            + code (string) - A status code for the links.
-                
-                    INFO_LINKS - The links are ready.
-                    INFO_LINKS_GENERATION_IN_PROGRESS - The links are still being created.
-                    ERROR_LINKS_CAMPAIGN_INACTIVE - The claim before date on the gift offer has passed.
-                    ERROR_LINKS_BAD_CAMPAIGN - Invalid campaign id or the campaign was found but is not a SHORTLINK campaign.                
-                
-        + shortlinks
-            + number (number) - Link number.
-            + shortlink (string) - The gift offers url.
-        + `number_of_results` (number) - The total number of returned links.
-        + limit (number) - The number of links returned.
-        + offset (number) - The offset into the matched results.
-        + `total_count` (number) - The total number of links.
-        
-    + Body
-    
-
-            {
-              "info": {
-                "code": "INFO_LINKS",
-                "name": "Link information retrieved",
-                "message": "Returned links for requested Campaign"
-              },
-              "shortlinks": [
-                {
-                  "number": 1,
-                  "shortlink": "http://gtbt.co/CayUS76pqqP"
-                },
-                {
-                  "number": 2,
-                  "shortlink": "http://gtbt.co/PX4KwQW9Ggf"
-                }
-              ],
-              "number_of_results": 2,
-              "limit": 2,
-              "offset": 0,
-              "total_count": 100
-            }
-            
-+ Response 200
-    + Body
-    
-            {
-               "info":{
-                  "code":"INFO_LINKS_GENERATION_IN_PROGRESS",
-                  "name":"Links have not yet completed generating; request again in 5 minutes",
-                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
-               }
-            }
-            
-## Marketplace [/marketplace]
-The `/marketplace` endpoint is deprecated.  Its functionality has been absorbed and improved into `/brands`.  Note that if you have built your `/campaign` calls providing marketplace_gifts, they will still continue to function and the request and response bodies will be unchanged so your implementation will not break. (Note, therefore, they may not exactly match the current `/campaign` documentation).
-
-If you are planning to make any changes to your implementation, we strongly recommended migrating to `/brands`.  The impact should be small and result in a cleaner implementation.  The Giftbit team is happy to provide support if needed.
-
-### list marketplace [GET /marketplace]
