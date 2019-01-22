@@ -94,15 +94,15 @@ The Giftbit API is designed to be simple yet powerful.  This mini-guide serves a
 
 ### Step 1: Determine the brand(s) you want to send
 
-The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls. 
+The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls to `/campaign` or `/embedded`. 
 Depending on the brand, some only allow certain gift values while others have an allowed range.
 <br><br>
 **Important:** The testbed `/brands` endpoint only returns a small subset of available production brands. See https://www.giftbit.com/rewards/ for the list available via the production API.   
 
-#### Sending Predefined Brand(s) with Each Offer
+#### Sending Predefined Brand(s) with Each Gift Offer
 A simple yet popular API use case is to set up a certain brand or choice of brands that is always used. In this use case, you retrieve the `brand_code` of each brand you want to send
-manually through the `/brands` endpoint, choose a valid and desired gift price, and store them in your database or configuration.
-Then, whenever you wish to create a gift offer through the API, you provide the same predefined brand_code(s) and the price.  If you include more than one brand in a gift offer, the recipient will get to choose their desired brand as part of the claim process.
+by manually querying the `/brands` endpoint, choosing a valid and desired gift price, and storing them in your database or configuration.
+Then, whenever you wish to create a gift offer through the API, you provide the same predefined brand_code(s) and the price.  If you include more than one brand in an email-delivered gift offer, the recipient will get to choose their desired brand as part of the claim process.
 
 #### Providing an Interactive Brand Marketplace 
 Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
@@ -110,13 +110,13 @@ In this type of integration, you use the `/brands` endpoint to dynamically retri
 capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
 ### Step 2: Deliver your gift offer(s)
-Giftbit has two API-based delivery types: via email or embedded within your app or web flow via in-app delivery. All reporting and statistics are available for both delivery methods.
+Giftbit has two API-based delivery types: via email or embedded within your web or mobile app. All reporting and statistics are available for both delivery methods.
 
 #### Giftbit Email Delivery
 If you have email addresses for your recipients, email delivery is the recommended delivery method. Giftbit specializes in email deliverability and trusted best practices. We will deliver
-your customized, branded gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
+your customized gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
 deliverability issues are made available to you so that you can keep your recipient lists clean and of high
-quality. 
+quality.
 
 Email delivery is done via the `/campaign` endpoint as described in the Reference section.
 
