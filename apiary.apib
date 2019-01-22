@@ -90,7 +90,7 @@ Example:
 
 ## Getting Started
 
-The Giftbit API is designed to be simple yet powerful to support the best possible way of delivering your gift offers to your recipients.  This mini-guide serves as a starting point to structure your integration.  We encourage you to reach out to the Giftbit team at anytime to discuss the details of your program at apisupport@giftbit.com. 
+The Giftbit API is designed to be simple yet powerful.  This mini-guide serves as a starting point to structure your integration.  We encourage you to reach out to the Giftbit team at anytime to discuss the details of your program and integration at apisupport@giftbit.com. 
 
 ### Step 1: Determine the brand(s) you want to send
 
@@ -211,7 +211,7 @@ The `brand_code` returned, along with a valid price for the brand, is all you ne
 Note that when you retrieve a single brand via the `/brands/{brand_code}` call, extended information about the brand is provided such as a full description and the allowed price range (or fixed set of allowed prices, depending on the brand).
 
 
-### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}]
+### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}]
 + Parameters
     + region (number, optional) - Limits the results to brands that are available in the provided region as per the `id` returned from the `/region` endpoint.
     + `max_price_in_cents` (number, optional) - Limits the results to brands that have an available gift  option less than or equal to this value.
@@ -223,6 +223,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
     + search (string, optional) - Limits the results to brands containing the search term provided in their name, description, or other fields.
     + limit (number, optional) - Limits the number of results to the provided value. Default value is 20.
     + offset (number, optional) - Offsets the results by provided value. Used for paging through results. Default value is 0.
+    + embeddable(boolean, optional) - If supplied with a `true` value, brands that cannot be used for in-app delivery via the `embedded` endpoint will be omitted.
 
 + Request (application/json)
     + Headers
@@ -399,7 +400,7 @@ Lists all available regions.  The id returned can be used in conjunction with `/
 
 ## Campaign [/campaign]
 
-A Campaign represents a gift offer to one or more recipients delivered by Giftbit via email, and one or more brands from the `/brands` endpoint that each recipient can choose from.  See the "create campaign" reference for detailed information on the request and response bodies.
+A Campaign represents a gift offer to one or more recipients delivered by Giftbit via email, and one or more brands from the `/brands` endpoint that each recipient can choose from as part of the claim experience.  See the "create campaign" reference for detailed information on the request and response bodies.
 
 ### Handling network timeouts on creation
 
@@ -908,7 +909,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
             }
  
 ## Gifts [/gifts]
-Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient when a Campaign is created.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.
+Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient when a Campaign is created by the `/campaign` or `/embedded` endpoints.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.  Gifts delivered in-app by the `/embedded` endpoint cannot be resent or cancelled.
 
 All date/time fields are in Pacific Standard Time.
 
