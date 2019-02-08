@@ -8,7 +8,7 @@ This document includes a definitive list of endpoints defined under the 'Referen
 You can try all of the API calls directly from this interactive document (or your preferred REST client) with an API key from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
 Once you sign-up you'll receive a welcome email containing everything you need to create an API key and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
 
-While we encourage you to start exploring our API right away, we highly recommend getting in touch with us at apisupport@giftbit.com before you go too far down your integration path.  Giftbit has dedicated technical and business resources available to help you plan and build the right integration, avoid pitfalls, and get live as quickly as possible.  
+While we encourage you to start exploring our API right away, we highly recommend getting in touch with us at sales@giftbit.com before you go too far down your integration path.  Giftbit has dedicated technical and business resources available to help you plan and build the right integration, understand the pricing structure, avoid pitfalls, and get live as quickly as possible.  
 
 ## Environments and URLs
 
@@ -110,10 +110,10 @@ In this type of integration, you use the `/brands` endpoint to dynamically retri
 capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
 ### Step 2: Deliver your gift offer(s)
-Giftbit has two API-based delivery types: via email or embedded within your web or mobile app. All reporting and statistics are available for both delivery methods.
+Giftbit has two API-based delivery types: via email or in-app. All reporting and statistics are available for both delivery methods.
 
 #### Giftbit Email Delivery
-If you have email addresses for your recipients, email delivery is the recommended delivery method. Giftbit specializes in email deliverability and trusted best practices. We will deliver
+Giftbit specializes in email deliverability and trusted best practices. We will deliver
 your customized gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
 deliverability issues are made available to you so that you can keep your recipient lists clean and of high
 quality.
@@ -132,19 +132,12 @@ id you'll use in the `gift_template` field of the `/campaign` creation request. 
 then you must omit the message and subject in the request, unless you want to override the template content in that particular
 request.
 
-While we highly recommend using templates, it is not mandatory.  You may specify the subject and message for your offers via the `/campaign` campaign creation request.
+While we highly recommend using templates, it is not mandatory.  You may specify the subject and message for your offers via the `/campaign` creation request.
 
 #### In-App Delivery
-In-App delivery allows you to present the digital gift card to your recipient within your own web or mobile application, thereby keeping your user entirely within your own branded experience.  A detailed guide on In-App delivery integration is available at http://resources.giftbit.com/api/In-App-Rewards.pdf
-
-Note that in-app delivery has a different pricing structure than email delivery.  Please contact the Giftbit team at sales@giftbit.com to discuss your program.
+In-App delivery allows you to embed present the digital gift card to your recipient within your own web or mobile application, thereby keeping your user entirely within your own branded experience.  A detailed guide on In-App delivery integration is available at http://resources.giftbit.com/api/In-App-Rewards.pdf
 
 In-App delivery is done via the `/embedded` endpoint as described in the Reference section.
-
-#### Shortlink Delivery (for delivering gift offers yourself via a unique URL)
-In the cases where email-based delivery is not appropriate or you do not want to embed the gift within your application experience, you may create a campaign where each gift offer is represented by a unique shortlink that you can deliver in any way you wish.   These shortlinks are ordered and delivered to you through our web application interface, and you do not need to integrate with the API.
-
-If you think you require link based gift offer delivery in an automated API driven flow, please contact us.
 
 ### Step 3: Going Live
 
@@ -155,7 +148,7 @@ Contact the Giftbit API support team at apisupport@giftbit.com when you are read
 
 ### Step 4: Gift Offer Information and Management (optional)
 
-While not required for an integration, the `/gifts` endpoint provides the ability to get information about previously sent gifts through the `/campaign` or `/embedded` endpoints and perform (lifecycle dependant) actions on those gifts such as triggering a redelivery or cancellation.
+While not required for an integration, the `/gifts` endpoint provides the ability to get information about previously sent gifts through the `/campaign` or `/embedded` endpoints and perform (lifecycle and delivery type dependant) actions on those gifts such as triggering a redelivery or cancellation.
 
 ## Providing feedback on the API Documentation
 
