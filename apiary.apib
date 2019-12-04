@@ -568,14 +568,14 @@ A common question is whether or not to include multiple recipients on a single P
             }
  
 
-### retrieve campaign by id or uuid [GET /campaign/{id_or_uuid}]
+### retrieve campaign by id [GET /campaign/{id}]
 + Request (application/json)
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
             
 + Parameters
-    + `id_or_uuid`: clientProvidedGiftId_abc123 (required) - The campaign id or uuid. The id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
+    + `id`: clientProvidedGiftId_abc123 (required) - The campaign id. This id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
     
 + Response 200
     + Attributes
