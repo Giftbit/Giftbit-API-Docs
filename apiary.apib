@@ -223,6 +223,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
 
 + Response 200
 
@@ -274,6 +275,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Response 200
 
@@ -342,6 +344,7 @@ Lists all available regions.  The id returned can be used in conjunction with `/
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Response 200
     + Attributes
@@ -409,6 +412,7 @@ A common question is whether or not to include multiple recipients on a single P
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
 
     + Attributes
         + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
@@ -574,6 +578,7 @@ A common question is whether or not to include multiple recipients on a single P
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Parameters
     + `id`: clientProvidedGiftId_abc123 (required) - The campaign id. This id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
@@ -661,6 +666,7 @@ Please see the documentation on handling timeouts under the `/campaign` endpoint
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
 
     + Attributes
         
@@ -776,6 +782,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Response 200
     + Attributes
@@ -815,6 +822,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
 
     + Attributes
         + currencyisocode: `Example: USD` (string, required) - Which currency to add funds in. Options: CAD, USD
@@ -910,6 +918,7 @@ All date/time fields are in Pacific Standard Time.
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Parameters
     + uuid (string, optional) - Return the gift with matching uuid.
@@ -1015,6 +1024,7 @@ All date/time fields are in Pacific Standard Time.
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
@@ -1054,6 +1064,7 @@ All date/time fields are in Pacific Standard Time.
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
     + Attributes
         + resend: true (boolean, required)
@@ -1095,6 +1106,7 @@ All date/time fields are in Pacific Standard Time.
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
             
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
