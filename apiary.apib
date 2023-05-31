@@ -652,6 +652,155 @@ A common question is whether or not to include multiple recipients on a single P
                }
             }
 
+## Shortlink [/shortlink]
+
+This is an example of an API integration where the user wants to deliver unique links to gift offers 
+in their own emails. This workflow will demonstrate the campaign creation request followed by polling 
+and retrieving the unique gift shortlink. The shortlink is a link to where the recipient can receive their
+gift offer.
+
+### create shortlink campaign [POST /campaign]
+This is going to create a single $10 dollar Amazon gift offer which can be redeemed via a unique shortlink. The shortlink is 
+retrieved in the next step of the workflow. The id provided in the campaign creation request will be used to retrieve the
+shortlink for the offer.
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+        
+    + Body 
+        
+            {
+                "message":"Thanks for being such an awesome customer!",
+                "delivery_type":"SHORTLINK",
+                "link_count":1,
+                "marketplace_gifts": [
+                    {
+                        "id":1, 
+                        "price_in_cents":1000
+                    }
+                ],
+                "expiry":"2017-01-01",
+                "id":"clientProvidedGiftId_abc123"
+            }
+        
++ Response 200
+    + Attributes
+        + `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
+        + `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
+        + `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+        + fees - Depending on your giftbit account some of the fields returned in the fee section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
+    + Body
+
+
+            {
+              "info": {
+                "code": "INFO_CAMPAIGN_CREATED",
+                "name": "Campaign Created",
+                "message": "Campaign creation has begun."
+              },
+              "status": 200,
+              "campaign": {
+                "message": "Thanks for being such an awesome customer!",
+                "subject": "Please enjoy this gift!",
+                "contacts": null,
+                "marketplace_gifts": [
+                  {
+                    "price": 1000,
+                    "id": 1
+                  }
+                ],
+                "status": "API_CREATING",
+                "uuid": "247dbda05b3d494dab7d96dba9b31f55",
+                "suppress_default_greeting": false,
+                "delivery_type": "SHORTLINK",
+                "expiry": "2017-01-01",
+                "fees": {
+                  "cost_entries": [
+                    {
+                      "percentage": 0,
+                      "fee_type": "PREFUND_GIFT_COST",
+                      "amount_in_cents": 1000,
+                      "currency": "USD",
+                      "tax_type": "NOTAX",
+                      "tax_in_cents": 0,
+                      "number_of_gifts": 1,
+                      "fee_per_gift_in_cents": 1000
+                    },
+                    {
+                      "percentage": 0,
+                      "fee_type": "BREAKAGE_PERCENTAGE",
+                      "amount_in_cents": 0,
+                      "currency": "USD",
+                      "tax_type": "NOTAX",
+                      "tax_in_cents": 0,
+                      "number_of_gifts": 1,
+                      "fee_per_gift_in_cents": 0
+                    }
+                  ],
+                  "subtotal_in_cents": 1000,
+                  "tax_in_cents": 0,
+                  "tax_type": "NOTAX",
+                  "total_in_cents": 1000
+                },
+                "id": "clientProvidedGiftId_abc123",
+                "link_count": 1
+              }
+            }
+
+
+### retrieve link [GET /links/{id}]
+This endpoint is used to retrieve the unique shortlink for the offer. Note that after creating a campaign
+it will take a short period of time before the links become available. We recommend polling the links endpoint
+every 5 minutes until it is ready. You can tell if the links are ready by a status code provided in the response. 
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+            
++ Parameter
+    + id: `clientProvidedGiftId_abc123` (number, required) - The client provided id of the campaign.
+            
++ Response 200
+    + Attributes
+        + `INFO_LINKS` - Your gift offers are ready and the links are returned.
+        + `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your gift offers. Try again in 5 minutes
+        
+    + Body
+    
+            {
+               "info":{
+                  "code":"INFO_LINKS_GENERATION_IN_PROGRESS",
+                  "name":"Links have not yet completed generating; request again in 5 minutes",
+                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
+               }
+            }
+            
+            
++ Response 200
+    + Body
+
+         
+            {
+              "info": {
+                "code": "INFO_LINKS",
+                "name": "Link information retrieved",
+                "message": "Returned links for requested Campaign"
+              },
+              "shortlinks": [
+                {
+                  "number": 1,
+                  "shortlink": "http://gtbt.co/CjfPgkcVBtk"
+                }
+              ],
+              "number_of_results": 1,
+              "limit": 50,
+              "offset": 0,
+              "total_count": 1
+            }
+
+
 ## Embedded [/embedded]
 
 A POST to `/embedded` produces a digital gift for immediate in-app delivery, allowing your user to claim their gift within your own web or mobile application.    
