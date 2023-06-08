@@ -2,13 +2,13 @@ FORMAT: 1A
 HOST: https://api-testbed.giftbit.com/papi/v1
 
 # Giftbit API
-Giftbit's REST API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow. 
-This document includes a definitive list of endpoints defined under the 'Reference' section, along with an error code reference, code examples, and a comprehensive getting started guide. 
+Giftbit's REST API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow.
+This document includes a definitive list of endpoints defined under the 'Reference' section, along with an error code reference, code examples, and a comprehensive getting started guide.
 
 You can try all of the API calls directly from this interactive document (or your preferred REST client) with an API key from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register" target="_blank">here</a></em>.
 Once you sign-up you'll receive a welcome email containing everything you need to create an API key and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
 
-While we encourage you to start exploring our API right away, we highly recommend getting in touch with us at testbed@giftbit.com before you go too far down your integration path.  Giftbit has dedicated technical and business resources available to help you plan and build the right integration, understand the pricing structure, avoid pitfalls, and get live as quickly as possible.  
+While we encourage you to start exploring our API right away, we highly recommend getting in touch with us at testbed@giftbit.com before you go too far down your integration path.  Giftbit has dedicated technical and business resources available to help you plan and build the right integration, understand the pricing structure, avoid pitfalls, and get live as quickly as possible.
 
 ## Environments and URLs
 
@@ -31,7 +31,7 @@ There are a few key differences between Giftbit’s Testbed and production APIs 
 * All of your account settings are set separately in testbed and production.
 * To encourage continuous integration testing against our Testbed API, you will be given a very large initial account balance on your Testbed account. A test credit card (no real charges) will also be attached to the Testbed account so you can add more funds, if needed, from your funding dashboard.
 * In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns manually or automatically, but it is not a requirement.
-    
+
 ## Authentication
 Authenticate with the Giftbit API by sending your API key prefixed by the word `Bearer` (case sensitive) and a space in the “Authorization” HTTP header.  The /ping endpoint is a convenient way to test your authentication.
 
@@ -40,7 +40,7 @@ Your API integration should always check the HTTP response code to ensure correc
 
 ### Success Responses
 
-**200:**  Success.  See the reference section for success response formats for each endpoint.  
+**200:**  Success.  See the reference section for success response formats for each endpoint.
 
 ### Error Responses
 All non 200 responses should be treated as an error and either retried, or the request fixed and then retried.  This section details the different potential non 200 responses. To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
@@ -90,49 +90,59 @@ Example:
 
 ## Getting Started
 
-The Giftbit API is designed to be simple yet powerful.  This mini-guide serves as a starting point to structure your integration.  We encourage you to reach out to the Giftbit team at anytime to discuss the details of your program and integration at testbed@giftbit.com. 
+The Giftbit API is designed to be simple yet powerful.  This mini-guide serves as a starting point to structure your integration.  We encourage you to reach out to the Giftbit team at anytime to discuss the details of your program and integration at testbed@giftbit.com.
 
 ### Step 1: Determine the brand(s) you want to send
 
-The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls to `/campaign` or `/embedded`. 
+The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls to `/campaign` or `/embedded`.
 Depending on the brand, some only allow certain gift values while others have an allowed range.
 <br><br>
-**Important:** The testbed `/brands` endpoint only returns a small subset of available production brands. See https://www.giftbit.com/rewards/ for the list available via the production API.   
+**Important:** The testbed `/brands` endpoint only returns a small subset of available production brands. See https://www.giftbit.com/rewards/ for the list available via the production API.
 
 #### Sending Predefined Brand(s) with Each Gift Offer
 A simple yet popular API use case is to set up a certain brand or choice of brands that is always used. In this use case, you retrieve the `brand_code` of each brand you want to send
 by manually querying the `/brands` endpoint, choosing a valid and desired gift price, and storing them in your database or configuration.
 Then, whenever you wish to create a gift offer through the API, you provide the same predefined brand_code(s) and the price.  If you include more than one brand in an email-delivered gift offer, the recipient will get to choose their desired brand as part of the claim process.
 
-#### Providing an Interactive Brand Marketplace 
+#### Providing an Interactive Brand Marketplace
 Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
 In this type of integration, you use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
 capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
 ### Step 2: Deliver your gift offer(s)
-Giftbit has two API-based delivery types: via email or in-app. All reporting and statistics are available for both delivery methods.
+Giftbit has three API-based delivery types: via email, shortlinks, or in-app. All reporting and statistics are available for all delivery methods.
 
 #### Giftbit Email Delivery
 Giftbit specializes in email deliverability and trusted best practices. We will deliver
 your customized gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
-deliverability issues are made available to you so that you can keep your recipient lists clean and of high
+deliverability issues are available to you so that you can keep your recipient lists clean and of high
 quality.
 
 Email delivery is done via the `/campaign` endpoint as described in the Reference section.
 
-##### Using Templates With Email Delivery
+#### Shortlinks
+
+Shortlinks can be used when you want to deliver a unique link to a gift offer via your own email system, SMS, or another distribution method.
+Once a Shortlink has been created, you can distribute the link to the recipient by sharing it with them.
+When the recipient opens the link, the set message and gift offer(s) will display allowing the user to navigate through to redeem their gift of choice.
+
+Generating Shortlinks is done via the `/campaign` endpoint as described in the Reference section.
+
+##### Using Templates With Email Delivery & Shortlinks
 Templates allow your gift messages to be richly formatted and provide a nice separation of responsibility
 between content creators and developers. This is done by allowing the gift content (subject, the message with formatting and
 rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
 without requiring any changes to the API calls themselves when the content
-changes. To get started with templates navigate to the templates section of your Giftbit account. 
+changes. To get started with templates navigate to the templates section of your Giftbit account.
 <br><br>
-Each template will be auto-assigned a unique uppercase short identifier shown in the web interface. This is the 
+Each template will be auto-assigned a unique uppercase short identifier shown in the web interface. This is the
 id you'll use in the `gift_template` field of the `/campaign` creation request. Note that if you provide a gift template
-then you must omit the message and subject in the request, unless you want to override the template content in that particular
+then you must omit the message and subject in the request unless you want to override the template content in that particular
 request.
 
-While we highly recommend using templates, it is not mandatory.  You may specify the subject and message for your offers via the `/campaign` creation request.
+While we highly recommend using templates, it is not mandatory. You may specify the subject and message for your offers via the `/campaign` creation request.
+
+*NOTE:* For Shortlinks, the `subject` field won't be leveraged however we still recommend setting it in the template. This allows the template to be used with both Email Delivery and Shortlinks.
 
 #### In-App Delivery
 In-App delivery allows you to embed the digital gift card to your recipient within your own web or mobile application, thereby keeping your user entirely within your own branded experience. For details, contact us at testbed@giftbit.com.
@@ -143,7 +153,7 @@ In-App delivery is done via the `/embedded` endpoint as described in the Referen
 
 Contact the Giftbit API support team at testbed@giftbit.com when you are ready for production access.  You will need to include in your email:
 * Screenshots or a video of your user facing flow.
-* The email address of the production Giftbit account you have created.  As this email address will be the reply-to of your gift offer emails sent from Giftbit, we recommend something along the lines of 'gifts@yourdomain.com'  
+* The email address of the production Giftbit account you have created.  As this email address will be the reply-to of your gift offer emails sent from Giftbit, we recommend something along the lines of 'gifts@yourdomain.com'
 
 
 ### Step 4: Gift Offer Information and Management (optional)
@@ -164,15 +174,15 @@ A successful response will include the name and email of the Giftbit account ass
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-    
+
 + Response 200
     + Attributes
         + username (string) - The username associated with the credentials provided.
         + displayname (string) - The display name associated with the credentials provided.
-        + info 
+        + info
             + code (string) - Status code for the request. Values
                    INFO_CREDENTIALS - Credentials are valid.
-               
+
             + Body
                 {
                     "username":"example_merchant@giftbit.com",
@@ -184,7 +194,7 @@ A successful response will include the name and email of the Giftbit account ass
                             "message":"The credentials used are valid and login attempt was successful."
                         }
                 }
-    
+
 + Response 401
 
         {
@@ -236,12 +246,12 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
         + info
             + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
         + `number_of_results` (number) - The number of results returned.
-        + `limit` (number) - The maximum number of results that can be returned. 
-        + `offset` (number) - The offset into the results. 
+        + `limit` (number) - The maximum number of results that can be returned.
+        + `offset` (number) - The offset into the results.
         + `total_count` (number) - The total number of results that matched request.
-            
+
     + Body
-    
+
             {
                "brands": [
                     {
@@ -267,7 +277,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
                "total_count":2
             }
 
-### retrieve brand [GET /brands/{brand_code}] 
+### retrieve brand [GET /brands/{brand_code}]
 + Parameters
     + `brand_code` (string, required) - Retrieve a single brand by brand_code.
 
@@ -276,7 +286,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Response 200
 
     + Attributes
@@ -291,10 +301,10 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
             + `min_price_in_cents` (number, optional) - Gives the minimum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
             + `max_price_in_cents` (number, optional) - Gives the maximum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
             + `allowed_prices_in_cents` (array[number], optional) - Gives the possible gift values for non variable price brands.  Will be present in the response only if variable_price=false
-            
+
         + info
             + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
-            
+
     + Body
 
             {
@@ -320,12 +330,12 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
                     "name": "Brand(s) Retrieved",
                     "message": "A list of brands or single brand has been retrieved"
                 }
-            }       
+            }
 
 + Response 422
 
     + Body
-    
+
             {
                 "error": {
                     "code": "ERROR_BRANDS_NO_SUCH_BRAND",
@@ -337,7 +347,7 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
 
 ## Regions [/regions]
 
-Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
+Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region.
 
 ## list regions [GET /regions]
 + Request (application/json)
@@ -345,18 +355,18 @@ Lists all available regions.  The id returned can be used in conjunction with `/
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Response 200
     + Attributes
-        + regions 
+        + regions
             + id (number) - A numeric identifier for the region.
             + name (string) - The name of the region.
             + `image_url` (string) - An image for the region.
         + info
             + code (string) - Status code. [`INFO_RETRIEVED_REGIONS`]
-    
+
     + Body
-            
+
             {
                 "regions": [
                     {
@@ -386,20 +396,20 @@ Lists all available regions.  The id returned can be used in conjunction with `/
                     "message": "A list of regions has been retrieved."
                 }
             }
- 
+
 ## Data Structures
 
 ### Contact
 + email: pjohnson@giftbit.com (required)
 + firstname: Perry (optional)
-+ lastname: Johnson (optional) 
++ lastname: Johnson (optional)
 
 
 ## Campaign [/campaign]
 
 A Campaign represents a gift offer to one or more recipients delivered by Giftbit via email, and one or more brands from the `/brands` endpoint that each recipient can choose from as part of the claim experience.  See the "create campaign" reference for detailed information on the request and response bodies.
 
-### Handling network timeouts on creation
+### Handling Network Timeouts on Creation
 
 If you receive a network timeout or other unexpected response (such as a 5xx) when creating a campaign, send the `POST` again using the same supplied `id`.  Giftbit will only ever create one campaign with a given supplied `id`.  It is important you choose your `id` in such a way that they are always unique across different campaigns.
 
@@ -418,15 +428,15 @@ A common question is whether or not to include multiple recipients on a single P
         + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
         + subject: `Example: Please enjoy this gift!` (string, optional) - Gift email subject. Required if no supplied template.
         + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create campaign API call.
-        + contacts: (array[Contact], required) - A list of contact objects and is required.
+        + `contacts` (array[Contact], required) - A list of contact objects and is required.
         + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
         + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
-        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.  
-        
-        
-    + Body 
-        
+        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+
+
+    + Body
+
             {
                 "gift_template": "XDKHE",
                 "contacts": [
@@ -449,15 +459,15 @@ A common question is whether or not to include multiple recipients on a single P
                 "expiry":"2018-11-01",
                 "id":"clientProvidedGiftId_abc123"
             }
-        
+
 + Response 200
     + Attributes
         + info
-            + code (string) - Status code for request. Possibilities: 
+            + code (string) - Status code for request. Possibilities:
                     `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
                     `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
                     `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
-                
+
         + campaign
             + message (string) - The message for the campaign.
             + subject (string) - The subject for the campaign.
@@ -473,16 +483,16 @@ A common question is whether or not to include multiple recipients on a single P
                 CAMPAIGN_CREATED - The campaign has been created. Note the gift emails may still be in the process of being delivered at this point.
             + uuid (string) - A unique identifier for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
             + `delivery_type` (string) - The delivery type of the campaign. Possibilities:
-                
+
                     GIFTBIT_EMAIL
 
             + expiry (string) - The campaign's claim before date as described in creation parameters.
-            + `contact_success_count` (number) - The number of contacts added successfully. 
+            + `contact_success_count` (number) - The number of contacts added successfully.
             + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
         + fees - Information about the cost of the campaign and any associated fees at creation or completion time.
-        + id (string) - The client provided id for the campaign.  
-    + Body 
-    
+        + id (string) - The client provided id for the campaign.
+    + Body
+
             {
                "info":{
                   "code":"INFO_CAMPAIGN_CREATED",
@@ -552,17 +562,17 @@ A common question is whether or not to include multiple recipients on a single P
                   "id":"clientProvidedGiftId_abc123"
                }
             }
-            
+
 + Response 422
     + Attributes
         + status (number) - the http status code
-        + error 
+        + error
             + code (string) - An enum-style error code desribing the reason for failure.
             + name (string) - human readable error name
             + message (string) - request context specific error message
-                   
+
     + Body
-            
+
             {
                 "error": {
                     "code": "ERROR_CAMPAIGN_INVALID_BRAND",
@@ -571,7 +581,7 @@ A common question is whether or not to include multiple recipients on a single P
                 },
                 "status": 422
             }
- 
+
 
 ### retrieve campaign by id [GET /campaign/{id}]
 + Request (application/json)
@@ -579,17 +589,17 @@ A common question is whether or not to include multiple recipients on a single P
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Parameters
     + `id`: clientProvidedGiftId_abc123 (required) - The campaign id. This id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
-    
+
 + Response 200
     + Attributes
         + info
             + code (string) - Status code for the request. [INFO_CAMPAIGN_RETRIEVED]
         + campaign (object) - The returned campaign object.
     + Body
-    
+
             {
                "info":{
                   "code":"INFO_CAMPAIGN_RETRIEVED",
@@ -652,11 +662,202 @@ A common question is whether or not to include multiple recipients on a single P
                }
             }
 
+## Shortlink [/shortlink]
+
+Shortlinks can be used when you want to deliver a unique link to a gift offer via your own distribution method.
+
+To generate a Shortlink call the `/campaign` endpoint with `delivery_type: "SHORTLINK"`.
+Many Shortlinks can be created in a single request and allow the recipient to choose from the offered gifts
+in the template or set in `brand_codes`.
+
+Shortlinks take a moment before they are fully created.
+In order to retrieve the link(s) you can call `/links/{id}` to check the status and once ready the API will provide the actual shortlink URL(s).
+
+After which you can distribute the links to your recipient via any method you choose. Then the recipient can open the link to claim their gift offer.
+
+### Deciding on Shortlinks vs In-App Delivery
+
+Since Shortlinks and In-App Delivery both serve very similar use cases, it often can be difficult to choose
+which delivery type to leverage. The following section outlines the differences between the two delivery types:
+
+#### Shortlinks:
+
+- The distribution to recipients is handled via link sharing by you.
+- Multiple gift options can be included to choose from instead of pre-selecting only one gift.
+- Gift offers may be canceled so long as the gift offer has not been redeemed or has not yet expired.
+- Multiple links may be generated in a single request.
+
+#### In-App Delivery:
+
+- Designed to be embedded into an existing app with minimal Giftbit branding and with no additional message as part of the gift.
+- The redemption experience is more streamlined with only a single gift offer that is pre-selected.
+- Users are automatically directed to the selected card without the need for additional steps.
+- All gift offers are marked redeemed. They cannot be canceled once created nor will they expire.
+- Each API request generates a single gift.
+
+### Obtaining the Shortlink
+
+Once a Shortlink request has been made, and if there are sufficient funds, it will take a short period of time before the links become available.
+We recommend polling the links endpoint every 5 minutes until it is ready.
+You can tell if the links are ready by a status code provided in the response.
+
+### Handling Network Timeouts on Creation
+
+Please see the documentation on handling timeouts under the `/campaign` endpoint reference.
+
+### create shortlink campaign [POST /campaign]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
+
+    + Attributes
+        + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
+        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` as part of the create shortlink campaign API call.
+        + `delivery_type`: (string, required) - Must be set to "SHORTLINK"
+        + `link_count` (number, required) - Amount of gift links to generate (must be a positive integer)
+        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
+        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
+        + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+
+    + Body
+
+            {
+                "gift_template": "XDKHE",
+                "delivery_type": "SHORTLINK",
+                "link_count": 1,
+                "price_in_cents": 2500,
+                "brand_codes": [
+                  "itunesus",
+                  "amazonus"
+                ],
+                "expiry":"2023-07-07",
+                "id":"clientProvidedGiftId_abc123"
+            }
+
+
++ Response 200
+    + Attributes
+        + `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
+        + `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
+        + `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+        + fees - Depending on your giftbit account some of the fields returned in the fee section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
+    + Body
+
+
+            {
+              "info": {
+                "code": "INFO_CAMPAIGN_CREATED",
+                "name": "Campaign Created",
+                "message": "Campaign creation has begun."
+              },
+              "status": 200,
+              "campaign": {
+                "message": "Thanks for being such an awesome customer!",
+                "subject": "Please enjoy this gift!",
+                "contacts": null,
+                "status": "API_CREATING",
+                "uuid": "49e90cb2616b4893b55871a1786f84b0",
+                "suppress_default_greeting": false,
+                "delivery_type": "SHORTLINK",
+                "price_in_cents": 2500,
+                "brand_codes": [
+                    "itunesus",
+                    "amazonus"
+                ],
+                "expiry": "2023-07-07",
+                "fees": {
+                  "cost_entries": [
+                    {
+                      "percentage": 0,
+                      "fee_type": "PREFUND_GIFT_COST",
+                      "amount_in_cents": 2500,
+                      "currency": "USD",
+                      "tax_type": "NOTAX",
+                      "tax_in_cents": 0,
+                      "number_of_gifts": 1,
+                      "fee_per_gift_in_cents": 2500
+                    },
+                    {
+                      "percentage": 50.000,
+                      "fee_type": "BREAKAGE_PERCENTAGE",
+                      "amount_in_cents": 0,
+                      "currency": "USD",
+                      "tax_type": "NOTAX",
+                      "tax_in_cents": 0,
+                      "number_of_gifts": 1,
+                      "fee_per_gift_in_cents": 0
+                    }
+                  ],
+                  "subtotal_in_cents": 2500,
+                  "tax_in_cents": 0,
+                  "tax_type": "NOTAX",
+                  "total_in_cents": 2500
+                },
+                "id": "clientProvidedGiftId_abc123",
+                "gift_template": "XDKHE",
+                "link_count": 1
+                }
+              }
+
+
+### retrieve shortlink campaign [GET /links/{id}]
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
+
++ Parameter
+    + id: `clientProvidedGiftId_abc123` (number, required) - The client provided id of the campaign.
+
++ Response 200
+    + Attributes
+        + `INFO_LINKS` - Your gift offers are ready and the links are returned.
+        + `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your gift offers. Try again in 5 minutes
+
+    + Body
+
+            {
+               "info":{
+                  "code":"INFO_LINKS_GENERATION_IN_PROGRESS",
+                  "name":"Links have not yet completed generating; request again in 5 minutes",
+                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
+               }
+            }
+
+
++ Response 200
+    + Body
+
+
+            {
+              "info": {
+                "code": "INFO_LINKS",
+                  "name": "Link information retrieved",
+                  "message": "Returned links for requested Campaign"
+              },
+              "shortlinks": [
+                  {
+                  "number": 1,
+                  "shortlink": "http://gtbt.co/q5WmFXVjCAh"
+                  }
+              ],
+              "number_of_results": 1,
+              "limit": 50,
+              "offset": 0,
+              "total_count": 1
+            }
+
+
 ## Embedded [/embedded]
 
-A POST to `/embedded` produces a digital gift for immediate in-app delivery, allowing your user to claim their gift within your own web or mobile application.    
+A POST to `/embedded` produces a digital gift for immediate in-app delivery, allowing your user to claim their gift within your own web or mobile application.
 
-### Handling network timeouts on creation
+### Handling Network Timeouts on Creation
 
 Please see the documentation on handling timeouts under the `/campaign` endpoint reference.
 
@@ -669,45 +870,45 @@ Please see the documentation on handling timeouts under the `/campaign` endpoint
             Accept-Encoding: identity
 
     + Attributes
-        
+
         + `price_in_cents`: `2500` (number, required) - the value of the digital gift you are creating, in cents.  A value of 2500 would create a $25 gift for the given brand.
         + `brand_code`: `Example:itunesus` (string, required) - a brand_code as given by the `/brands` endpoint.
-        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`. 
-        
-        
-        
-    + Body 
-        
+        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+
+
+
+    + Body
+
             {
                 "brand_code": "itunesus",
                 "price_in_cents" : 2500,
                 "id": "myGift12345"
             }
-        
+
 + Response 200
     + Attributes
         + info
-            + code (string) - Status code for request. Possibilities: 
+            + code (string) - Status code for request. Possibilities:
                     `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
                     `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
                     `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
-                
+
         + campaign
             + price_in_cents (number) - The amount of the gift.
             + brand_code (string) - The brand of gift .
             + uuid (string) - A unique identifier for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
         + fees - Information about the cost of the campaign and any associated fees at creation or completion time.
-        + id (string) - The client provided id for the campaign.  
+        + id (string) - The client provided id for the campaign.
         + gift_link (string) - The unique gift link for embedding your gift as per the integration guide.
-    + Body 
-    
+    + Body
+
             {
                  "info": {
                  "code": "INFO_CAMPAIGN_CREATED",
                  "name": "Campaign Created",
                  "message": "Campaign creation has begun."
                  },
-                 
+
                  "status": 200,
                  "campaign": {
                      "uuid": "5ac9cea1234d47f5be3592ad0fe7cc76",
@@ -747,17 +948,17 @@ Please see the documentation on handling timeouts under the `/campaign` endpoint
                 "https://testbedapp.giftbit.com/embeddedRewards/index/5ac9cea1234abcf5be35
                 92ad0fe7cc76"
             }
-            
+
 + Response 422
     + Attributes
         + status (number) - the http status code
-        + error 
+        + error
             + code (string) - An enum-style error code desribing the reason for failure.
             + name (string) - human readable error name
             + message (string) - request context specific error message
-                   
+
     + Body
-            
+
             {
                 "error": {
                     "code": "ERROR_CAMPAIGN_INVALID_BRAND",
@@ -766,22 +967,22 @@ Please see the documentation on handling timeouts under the `/campaign` endpoint
                 },
                 "status": 422
             }
- 
+
 
 ## Funds [/funds]
-`GET` returns real-time information on your account funding overview. For per funding event detail, you can request a report through the web application. 
+`GET` returns real-time information on your account funding overview. For per funding event detail, you can request a report through the web application.
 
 `POST` allows you to add funds to your account. Some configuration must first be completed in the web application. You will need a credit card on file for the currencies you plan to fund. Next, take note of the funding fee and minimum charge amount. Both of those details can be found under "Purchase Credits -> Auto-charge" in the web application. The response to `POST` `/funds` is your updated account balances.
 
 If you receive a network timeout or other unexpected response (such as a 5xx) when creating a funding event, send the `POST` again using the same supplied `id`. Giftbit will only ever create one funding event with a given supplied `id`. It is important you choose your `id` in such a way that they are always unique across different funding events.
 
-### retrieve funding information [GET /funds] 
+### retrieve funding information [GET /funds]
 + Request (application/json)
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Response 200
     + Attributes
         + fundsbycurrency - USD, CAD, PRO (demo credits)
@@ -826,15 +1027,15 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
         + currencyisocode: `Example: USD` (string, required) - Which currency to add funds in. Options: CAD, USD
         + fund_amount_in_cents: `25000` (number, required) - Amount of money to fund in cents. Subject to minimums that can be found in the web application under "Purchase Credits -> Auto-charge".
         + id: `Example: abc123` (string, required) - An identifier for the funding event assigned by the client (you).  Must be unique across all your funding events.  If an unexpected error occurs, you can safely send the same POST again with the same `id`.
-    
-    + Body 
-    
+
+    + Body
+
             {
                 "currencyisocode": "USD",
                 "fund_amount_in_cents": 25000,
                 "id": "clientProvidedId_abc123"
             }
-        
+
 + Response 200
     + Attributes
         + fundsbycurrency - USD, CAD, PRO (demo credits)
@@ -867,17 +1068,17 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                 }
               }
             }
-            
+
 + Response 402
     + Attributes
         + status (number) - the http status code
-        + error 
+        + error
             + code (string) - An enum-style error code desribing the reason for failure.
             + name (string) - human readable error name
             + message (string) - request context specific error message
-                   
+
     + Body
-            
+
             {
                 "error": {
                     "code": "ERROR_FUNDS_CARD_ERROR",
@@ -890,13 +1091,13 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 + Response 400
     + Attributes
         + status (number) - the http status code
-        + error 
+        + error
             + code (string) - An enum-style error code desribing the reason for failure.
             + name (string) - human readable error name
             + message (string) - request context specific error message
-                   
+
     + Body
-            
+
             {
                 "error": {
                     "code": "ERROR_FUNDS_INVALID_FUND_AMOUNT",
@@ -905,7 +1106,7 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
                 },
                 "status": 400
             }
- 
+
 ## Gifts [/gifts]
 Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient when a Campaign is created by the `/campaign` or `/embedded` endpoints.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.  Gifts delivered in-app by the `/embedded` endpoint cannot be resent or cancelled.
 
@@ -917,14 +1118,14 @@ All date/time fields are in Pacific Standard Time.
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Parameters
     + uuid (string, optional) - Return the gift with matching uuid.
     + campaign_uuid (string, optional) -​Filter gifts by the campaign with the matching uuid.
     + `campaign_id` (string, optional) -​Filter gifts by the campaign with the matching campaign id.
     + `price_in_cents_greater_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_greater_than` can be used to filter gifts with prices in cents greater than the supplied value.
     + `price_in_cents_less_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_less_than` can be used to filter gifts with prices in cents less than the supplied value.
-    + `recipient_name` (string, optional) - Filter gifts by the name, or part of the name of the recipient. The search string must be at least 3 characters long. 
+    + `recipient_name` (string, optional) - Filter gifts by the name, or part of the name of the recipient. The search string must be at least 3 characters long.
     + `recipient_email` (string, optional) -​Filter gifts by the email address, or part of the email of the recipient. The search string must be at least 3 characters long.
     + `delivery_status` (string, optional) - Filter gifts by their delivery status. Delivery status can be one of `UNSENT`, `DELIVERED`, `UNDELIVERABLE`, `TEMPORARILY_UNDELIVERABLE`, `UNSUBSCRIBED`, `COMPLAINT`.
     + status (string, optional) - Filter gifts by their status. Options: `SENT_AND_REDEEMABLE`, `REDEEMED`, `TO_CHARITY`, `GIVER_CANCELLED`, or `EXPIRED`.
@@ -932,8 +1133,8 @@ All date/time fields are in Pacific Standard Time.
     + `created_date_less_than` (string, optional) - Filter gifts by their created date. Format `yyyy-MM-dd HH:mm:ss`.
     + `delivery_date_greater_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
     + `delivery_date_less_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
-    + `redelivery_count_greater_than` (number, optional) - Filter gifts by their redelivery count. 
-    + `redelivery_count_less_than` (number, optional) - Filter gifts by their redelivery count. 
+    + `redelivery_count_greater_than` (number, optional) - Filter gifts by their redelivery count.
+    + `redelivery_count_less_than` (number, optional) - Filter gifts by their redelivery count.
     + `redeemed_date_greater_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
     + `redeemed_date_less_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
     + limit (number, optional) - The maximum number of gifts to return at once. Default 20.
@@ -966,18 +1167,18 @@ All date/time fields are in Pacific Standard Time.
                         them from all future campaigns as Giftbit will return an error if you attempt to send to
                         them again.
             + status (string) - The status of the gift offer.
-                
+
                     SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
                     REDEEMED - The gift offer has been claimed.
                     TO_CHARITY - Deprecated.
                     GIVER_CANCELLED - The gift offer was canceled by the sender.
                     EXPIRED - The gift offer is expired because its claim before passed before it was redeemed.
-                
+
             + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
             + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
             + `campaign_id` (string) - The id of campaign provided by the client.
             + `price_in_cents` (number) - The value of the gift offer in cents.
-            + `marketplacegift_id` (string) - DEPRECATED.  Refer to brand_code. The id of the marketplace gift associated with the offer. 
+            + `marketplacegift_id` (string) - DEPRECATED.  Refer to brand_code. The id of the marketplace gift associated with the offer.
             + `brand_code` (string) The brand of the gift offer.  Will not be set if multiple brands were included in the campaign and the recipient has not chosen their brand as part of the claim process.
         + `number_of_results` (number) - The number of gifts returned from the request.
         + limit (number) - The maximum number of gifts to be returned from the request.
@@ -986,7 +1187,7 @@ All date/time fields are in Pacific Standard Time.
         + info
             + code (string) - Status code of request. [INFO_GIFTS]
     + Body
-    
+
             {
                "gifts":[
                   {
@@ -1015,7 +1216,7 @@ All date/time fields are in Pacific Standard Time.
                },
                "status":200
             }
-            
+
 
 ### retrieve gift [GET /gifts/{uuid}]
 + Request (application/json)
@@ -1023,14 +1224,14 @@ All date/time fields are in Pacific Standard Time.
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
-    
+
 + Response 200
-   
+
     + Body
-        
+
             {
                "gift":{
                   "uuid":"d30be501ed2546e580c5c9eaf56633d9",
@@ -1053,26 +1254,26 @@ All date/time fields are in Pacific Standard Time.
                },
                "status":200
             }
-            
-            
 
-            
+
+
+
 ### resend gift [PUT /gifts/{uuid}]
 + Request (application/json)
     + Headers
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
     + Attributes
         + resend: true (boolean, required)
-            
+
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
-    
-    
+
+
 + Response 200
-   
+
     + Body
 
             {
@@ -1105,14 +1306,14 @@ All date/time fields are in Pacific Standard Time.
 
             Authorization: Bearer YOUR_API_KEY
             Accept-Encoding: identity
-            
+
 + Parameters
     + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
-    
+
 + Response 200
-    
+
     + Body
-    
+
             {
                "gift":{
                   "uuid":"d30be501ed2546e580c5c9eaf56633d9",
