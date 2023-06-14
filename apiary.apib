@@ -125,6 +125,7 @@ Email delivery is done via the `/campaign` endpoint as described in the Referenc
 Shortlinks can be used when you want to deliver a unique link to a gift offer via your own email system, SMS, or another distribution method.
 Once a Shortlink has been created, you can distribute the link to the recipient by sharing it with them.
 When the recipient opens the link, the set message and gift offer(s) will display allowing the user to navigate through to redeem their gift of choice.
+Your account will need additional permissions to access Shortlink APIs. For details contact us at testbed@giftbit.com.
 
 Generating Shortlinks is done via the `/campaign` endpoint as described in the Reference section.
 
@@ -145,7 +146,8 @@ While we highly recommend using templates, it is not mandatory. You may specify 
 *NOTE:* For Shortlinks, the `subject` field won't be leveraged however we still recommend setting it in the template. This allows the template to be used with both Email Delivery and Shortlinks.
 
 #### In-App Delivery
-In-App delivery allows you to embed the digital gift card to your recipient within your own web or mobile application, thereby keeping your user entirely within your own branded experience. For details, contact us at testbed@giftbit.com.
+In-App delivery allows you to embed the digital gift card to your recipient within your own web or mobile application, thereby keeping your user entirely within your own branded experience.
+Your account will need additional permissions to access In-App Delivery APIs. For details contact us at testbed@giftbit.com.
 
 In-App delivery is done via the `/embedded` endpoint as described in the Reference section.
 
@@ -675,6 +677,8 @@ In order to retrieve the link(s) you can call `/links/{id}` to check the status 
 
 After which you can distribute the links to your recipient via any method you choose. Then the recipient can open the link to claim their gift offer.
 
+Your account will need additional permissions to access Shortlink APIs. For details contact us at testbed@giftbit.com.
+
 ### Deciding on Shortlinks vs In-App Delivery
 
 Since Shortlinks and In-App Delivery both serve very similar use cases, it often can be difficult to choose
@@ -856,6 +860,8 @@ Please see the documentation on handling timeouts under the `/campaign` endpoint
 ## Embedded [/embedded]
 
 A POST to `/embedded` produces a digital gift for immediate in-app delivery, allowing your user to claim their gift within your own web or mobile application.
+
+Your account will need additional permissions to access In-App Delivery APIs. For details contact us at testbed@giftbit.com.
 
 ### Handling Network Timeouts on Creation
 
