@@ -96,6 +96,8 @@ The Giftbit API is designed to be simple yet powerful.  This mini-guide serves a
 
 The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls to `/campaign` or `/embedded`.
 Depending on the brand, some only allow certain gift values while others have an allowed range.
+<br>
+Alternatively, you can send a reward that includes all brand options in our catalog for a given price and region. The `/regions` endpoint allows you to retreive a region_id to include in future APl calls to `/campaign`.
 <br><br>
 **Important:** The testbed `/brands` endpoint only returns a small subset of available production brands. See https://www.giftbit.com/rewards/ for the list available via the production API.
 
@@ -106,8 +108,7 @@ Then, whenever you wish to create a gift offer through the API, you provide the 
 
 #### Providing an Interactive Brand Marketplace
 Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
-In this type of integration, you use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
-capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
+In this type of integration, you use the `/regions` endpoint to retreive the id of the region in which you are sending rewards. Instead of providing `brand_code(s)`, simply provide the `region_id` and the recipient will get to choose any brand from Giftbit's catalog. 
 
 ### Step 2: Deliver your gift offer(s)
 Giftbit has three API-based delivery types: via email, shortlinks, or in-app. All reporting and statistics are available for all delivery methods.
@@ -349,7 +350,8 @@ Note that when you retrieve a single brand via the `/brands/{brand_code}` call, 
 
 ## Regions [/regions]
 
-Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region.
+Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region. 
+The id returned can also be used directly in a call to the `/campaign` endpoint to create a reward that allows your users to select from Giftbit's entire catalog of brands.
 
 ## list regions [GET /regions]
 + Request (application/json)
@@ -419,7 +421,171 @@ If you receive a network timeout or other unexpected response (such as a 5xx) wh
 
 A common question is whether or not to include multiple recipients on a single POST to `/campaign`, or to POST to `/campaign` for each individual recipient.  There is no difference in cost or to the experience for your recipients. This is a decision that should be made based on how you wish to track and report on your gift offers in the future, and how your system that calls our API is designed.  We generally recommend a single recipient per campaign if all else is equal as this pattern usually results in the simplest code and the recipient getting their gift offer as close as possible to when it was earned.
 
-### create campaign [POST /campaign]
+### Deciding on Full Catalog Campaign or a Customized Campaign
+
+With the Giftbit API you have the choice of sending a reward in which recipients can select a brand from the full catalog of available brands, or sending a reward with a custom set of brand options.
+The full catalog option offers the most variety to the recipient experience, and simplifies the sender procoess. The customization option allows you to curate a specific set of brands to offer to recipients. 
+There is no difference in cost. 
+
+### create full catalog campaign [POST /campaign]
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer YOUR_API_KEY
+            Accept-Encoding: identity
+
+    + Attributes
+        + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
+        + subject: `Example: Please enjoy this gift!` (string, optional) - Gift email subject. Required if no supplied template.
+        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create campaign API call.
+        + `contacts` (array[Contact], required) - A list of contact objects and is required.
+        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
+        + `region_id`: `1` (number, required) - a region id as given by the `/regions` endpoint to indicate the region of the brands that will be offered to recipients.  
+        + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+
+
+    + Body
+
+            {
+                "gift_template": "XDKHE",
+                "contacts": [
+                    {
+                        "firstname":"Perry",
+                         "lastname":"Johnson",
+                         "email":"pjohnson@giftbit.com"
+                     },
+                     {
+                        "firstname":"Rita",
+                         "lastname":"Robson",
+                         "email":"rrobson@giftbit.com"
+                     }
+                ],
+                "price_in_cents":5000,
+                "region_id": 1,
+                "expiry":"2018-11-01",
+                "id":"clientProvidedGiftId_abc123"
+            }
+
++ Response 200
+    + Attributes
+        + info
+            + code (string) - Status code for request. Possibilities:
+                    `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
+                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
+                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+
+        + campaign
+            + message (string) - The message for the campaign.
+            + subject (string) - The subject for the campaign.
+            + contacts (object) - A list of contacts the campaign is being sent to.
+            + price_in_cents (number) - The amount of the gift offer to each recipient.
+            + region_id (number) - The region for the brands of gift cards sent.
+            + status (string) - The status of the campaign. Possibilities:
+                API_CREATING - The campaign is in the process of being created.
+                AWAITING_FUNDS - The campaign has not yet been delivered to the recipient(s)
+                        because of insufficient funds in your Giftbit account. You do NOT need to
+                        resend the campaign as soon as you add funds to your account or your pending
+                        funds clear, the campaign will be automatically delivered to your recipients.
+                CAMPAIGN_CREATED - The campaign has been created. Note the gift emails may still be in the process of being delivered at this point.
+            + uuid (string) - A unique identifier for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
+            + `delivery_type` (string) - The delivery type of the campaign. Possibilities:
+
+                    GIFTBIT_EMAIL
+
+            + expiry (string) - The campaign's claim before date as described in creation parameters.
+            + `contact_success_count` (number) - The number of contacts added successfully.
+            + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
+        + fees - Information about the cost of the campaign and any associated fees at creation or completion time.
+        + id (string) - The client provided id for the campaign.
+    + Body
+
+            {
+               "info":{
+                  "code":"INFO_CAMPAIGN_CREATED",
+                  "name":"Campaign Created",
+                  "message":"Campaign creation has begun."
+               },
+               "status":200,
+               "campaign":{
+                  "message":"Thanks for being such an awesome customer!",
+                  "subject":"Please enjoy this gift!",
+                  "contacts":[
+                     {
+                        "email":"pjhonson@giftbit.com",
+                        "firstname":"Perry",
+                        "added_succesfully":true,
+                        "lastname":"Johnson",
+                        "message":"New contact"
+                     },
+                     {
+                        "email":"rrobson@giftbit.com",
+                        "firstname":"Rita",
+                        "added_succesfully":true,
+                        "lastname":"Robson",
+                        "message":"New contact"
+                     }
+                  ],
+                  "price_in_cents": 5000,
+                  "region_id": 1,
+                  "status":"API_CREATING",
+                  "uuid":"9a405b513c11413aaac593a0c2e1a15d",
+                  "suppress_default_greeting":false,
+                  "delivery_type":"GIFTBIT_EMAIL",
+                  "expiry":"2017-05-01",
+                  "contacts_success_count":2,
+                  "contacts_failure_count":0,
+                  "fees":{
+                     "cost_entries":[
+                        {
+                           "percentage":0,
+                           "fee_type":"PREFUND_GIFT_COST",
+                           "amount_in_cents":2000,
+                           "currency":"USD",
+                           "tax_type":"NOTAX",
+                           "tax_in_cents":0,
+                           "number_of_gifts":2,
+                           "fee_per_gift_in_cents":1000
+                        },
+                        {
+                           "percentage":0.000,
+                           "fee_type":"BREAKAGE_PERCENTAGE",
+                           "amount_in_cents":0,
+                           "currency":"USD",
+                           "tax_type":"NOTAX",
+                           "tax_in_cents":0,
+                           "number_of_gifts":2,
+                           "fee_per_gift_in_cents":0
+                        }
+                     ],
+                     "subtotal_in_cents":2000,
+                     "tax_in_cents":0,
+                     "tax_type":"NOTAX",
+                     "total_in_cents":2000
+                  },
+                  "id":"clientProvidedGiftId_abc123"
+               }
+            }
+
++ Response 422
+    + Attributes
+        + status (number) - the http status code
+        + error
+            + code (string) - An enum-style error code desribing the reason for failure.
+            + name (string) - human readable error name
+            + message (string) - request context specific error message
+
+    + Body
+
+            {
+                "error": {
+                    "code": "ERROR_CAMPAIGN_INVALID_BRAND",
+                    "name": "Invalid Region id",
+                    "message": "The region_id provided is not valid"                },
+                "status": 422
+            }
+            
+### create customized campaign [POST /campaign]
 + Request (application/json)
     + Headers
 
@@ -583,7 +749,6 @@ A common question is whether or not to include multiple recipients on a single P
                 },
                 "status": 422
             }
-
 
 ### retrieve campaign by id [GET /campaign/{id}]
 + Request (application/json)
