@@ -2,13 +2,13 @@ FORMAT: 1A
 HOST: https://api-testbed.giftbit.com/papi/v1
 
 # Giftbit API
-Giftbit's REST API allows you to automatically send rewards and incentives to your recipients as part of your system’s workflow. This document includes a definitive list of endpoints defined under the 'Reference' section, an error code reference, code examples, and a guide to getting started.
+Giftbit's REST API allows you to automatically send digital gift cards for hundreds of top brands to your recipients as part of your system’s workflow.
+This document includes a definitive list of endpoints defined under the 'Reference' section, along with an error code reference, code examples, and a comprehensive getting started guide.
 
-Sign up at [testbed.giftbit.com](http://testbed.giftbit.com) and visit the API keys section to generate an API token for the Testbed environment. Your Testbed account provides a large virtual account balance, so you can try placing orders and redeeming test cards to observe the recipient experience. 
+You can try all of the API calls directly from this interactive document (or your preferred REST client) with an API key from your Giftbit Testbed account. If you don't already have a Testbed account you can sign-up <em><a href="https://testbedapp.giftbit.com/register/index" target="_blank">here</a></em>.
+Once you sign-up you'll receive a welcome email containing everything you need to create an API key and get going right away.  Your Testbed account will also let you go through and test the entire recipient gift claim experience for the gift offers you send through your test account.
 
-Giftbit has dedicated technical and business resources to help you understand which implementation path is right for your integration. Email sales@giftbit.com to get assistance with your project.
-
-When your integration is ready to launch, sign up at [www.giftbit.com](http://www.giftbit.com) and contact sales@giftbit.com to signal production readiness. The Giftbit team will enable permissions to generate an API token in your production account.
+While we encourage you to start exploring our API right away, we highly recommend getting in touch with us at testbed@giftbit.com before you go too far down your integration path.  Giftbit has dedicated technical and business resources available to help you plan and build the right integration, understand the pricing structure, avoid pitfalls, and get live as quickly as possible.
 
 ## Environments and URLs
 
@@ -23,27 +23,27 @@ When your integration is ready to launch, sign up at [www.giftbit.com](http://ww
 See the 'Going Live' section of the Getting Started guide below for production considerations and instructions on getting production API access.
 
 ### Environment differences
-Here is a list of the key differences between Giftbit’s Testbed and Production APIs:
-- Reward emails and other notifications sent through Testbed will be sent to the email address you provided for your username instead of the specified recipient email(s).
-- Testbed reward emails have a header identifying them as test emails.
-- There is a limited number of reward brands available in Testbed. The complete list of Production reward brands is found at [www.giftbit.com/brands](https://www.giftbit.com/brands/)
-- To encourage continuous integration testing against the Testbed API, you are provided with a large virtual account balance in Testbed.
-- You will have different API tokens for Testbed and Production.
-- Your account settings are managed separately in Testbed and Production.
-- Your Testbed account comes with test credit cards to simulate USD and CAD credit card payments to Giftbit. These card numbers are intended for testing purposes only and do not use real money.
+There are a few key differences between Giftbit’s Testbed and production APIs designed to make building and testing your integration as easy and safe as possible:
+* All gift emails sent through Testbed will not go to the specified recipient email but instead be sent to the email address you provided for your testbed account signup, allowing you to test the full gifting process safely.
+* Gift emails from Testbed all have a header identifying them as test emails.
+* The brands in testbed are not a complete list of what brands are available in production.  See <a href="https://www.giftbit.com/brands/">https://www.giftbit.com/brands/</a> for a production list. Or access the `/brands` endpoint with your production API key.
+* You will have a different API keys for Testbed and production.
+* All of your account settings are set separately in testbed and production.
+* To encourage continuous integration testing against our Testbed API, you will be given a very large initial account balance on your Testbed account. A test credit card (no real charges) will also be attached to the Testbed account so you can add more funds, if needed, from your funding dashboard.
+* In production, you can fund your account via wire transfer. You may add a credit card and use it to fund your campaigns manually or automatically, but it is not a requirement.
 
 ## Authentication
-Authenticate with the Giftbit API by sending your API token prefixed by the word Bearer (case sensitive) and a space in the “Authorization” HTTP header. The `/ping` endpoint is a convenient way to test your authentication.
+Authenticate with the Giftbit API by sending your API key prefixed by the word `Bearer` (case sensitive) and a space in the “Authorization” HTTP header.  The /ping endpoint is a convenient way to test your authentication.
 
 ## HTTP Success and Error codes
-Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions. Only an HTTP status of 200 means the request was successful. For non-200 responses, the predictable response body (described below) will explain why the request failed. We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to troubleshoot. This section gives details on the response codes and recommended actions.
+Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.  ONLY an HTTP status of 200 means the request was successful.  For non 200 responses, the predictable response body (described below) will give you details on why the request failed.  We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to assist with troubleshooting. This section gives details on the response codes and recommended actions.
 
 ### Success Responses
 
 **200:**  Success.  See the reference section for success response formats for each endpoint.
 
 ### Error Responses
-All non-200 responses should be treated as an error and either retried or the request fixed and then retried. This section details the different potential non-200 responses. To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
+All non 200 responses should be treated as an error and either retried, or the request fixed and then retried.  This section details the different potential non 200 responses. To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
 
 ```
 {
@@ -78,64 +78,70 @@ Example:
 
 **400:** Error due to a malformed request body such as broken JSON or missing required element.  Requires fixing up the request body.
 
-**401/403:** An authentication or authorization failure.  Generally related to a missing or invalid API key. Ensure you are authenticating correctly.
+**401/403:** An authentication or authorization failure.  Generally related to a missing or invalid API key.  Ensure you are authenticating correctly.
 
 **402:** Credit Card charge failure. Request was correct, but card was not charged.
 
-***422:*** The request is formatted correctly, but one or more parameters in the body or URL are invalid. An example would be creating an order with a price outside that brand's allowed range. Ensure the request parameters are valid.
+***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid.  An example would be trying to create a campaign with a gift value outside of the allowed range for that brand.  Ensure the request parameters are valid.
 
-***429:*** Too many requests. The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. It is recommended that if you receive a 429 response, your code automatically retries the request with a backoff delay. Note that you can simulate this condition in the Testbed environment to assist with your error-handling development without producing a high request rate by passing a SIMULATE-RATELIMIT header with a value of true for any request. If you are frequently rate-limited in a valid usage pattern, contact testbed@giftbit.com for assistance.
+***429:*** Too many requests.  The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns.  It is recommended that if you do recieve a 429 response, your code automatically retry your request with a backoff delay.  Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for any request.  If you feel you are being frequently rate limited in a valid usage pattern, please contact support.
 
-***5xx:*** An unexpected error on the Giftbit side. Retry the request, and if failures persist, contact testbed@giftbit.com for assistance. The response body format in the 5xx case may not match the common error response format described.
-
-#### Handling Timeouts
-If you receive a network timeout or other unexpected response (such as a 5xx) when creating a campaign or an embedded reward, resend the POST request to `/campaign` or `/embedded` using the same supplied `id`. The supplied `id` is idempotent, Giftbit will only ever create one order with a given supplied `id`. The supplied `id` must always be unique across different requests.
-We highly recommend using exponential backoff with a limited amount of tries for timeouts and unexpected responses (such as a 5xx) with clear logging or alerts to allow for investigation.
-
+***5xx:*** An unexpected error on the Giftbit side.  Retry the request, and if failures persist contact support.  Note that the response body format in the 5xx case may not match the common error response format described.
 
 ## Getting Started
-Before you begin building your integration, you should consider which delivery method is best suited to your system workflow and your intended user experience. There are three delivery methods: email, link-based, or In-app rewards.
 
-### Reward Delivery
+The Giftbit API is designed to be simple yet powerful.  This mini-guide serves as a starting point to structure your integration.  We encourage you to reach out to the Giftbit team at anytime to discuss the details of your program and integration at testbed@giftbit.com.
 
-#### Giftbit delivers rewards by email
-You can use the `/campaign` endpoint to request a reward delivered to your recipient by email.  Giftbit delivers your customized reward email to each recipient via an HTML email. You can send a predefined reward brand or a choice between reward brands. Each reward has a customizable claim period.
+### Step 1: Determine the brand(s) you want to send
 
-Giftbit specializes in email deliverability and digital trust best practices. You can access records of bounces, spam complaints, and other deliverability issues to manage the quality of your recipient lists. 
+The `/brands` endpoint allows you to retrieve the necessary information for the brands you'd like to include in your gift offers, in particular the brand_code and an allowed price for the brand to include in your future API calls to `/campaign` or `/embedded`.
+Depending on the brand, some only allow certain gift values while others have an allowed range.
+<br><br>
+**Important:** The testbed `/brands` endpoint only returns a small subset of available production brands. See https://www.giftbit.com/rewards/ for the list available via the production API.
 
-Email delivery uses the `/campaign` endpoint described in the Reference section.
+#### Sending Predefined Brand(s) with Each Gift Offer
+A simple yet popular API use case is to set up a certain brand or choice of brands that is always used. In this use case, you retrieve the `brand_code` of each brand you want to send
+by manually querying the `/brands` endpoint, choosing a valid and desired gift price, and storing them in your database or configuration.
+Then, whenever you wish to create a gift offer through the API, you provide the same predefined brand_code(s) and the price.  If you include more than one brand in an email-delivered gift offer, the recipient will get to choose their desired brand as part of the claim process.
 
-#### Another system delivers rewards as links
-You can use the `/campaign` endpoint to request Link-based rewards. After retrieving the unique link, you can pass it to another system and deliver it to the recipient by email, SMS, or another distribution method. You can send a predefined reward brand or a choice between reward brands. Each reward has a customizable claim period. 
+#### Providing an Interactive Brand Marketplace
+Providing your users with an interactive marketplace where they can select the gift they want from Giftbit's entire catalog of brands from within your app or web offering is another workflow the Giftbit API supports.
+In this type of integration, you use the `/brands` endpoint to dynamically retrieve Giftbit's catalog of brands, restricted by the criteria of your choice. The API provides the
+capability to restrict results by any combination of price, currency, region, or search term. It also supports results paging.
 
+### Step 2: Deliver your gift offer(s)
+Giftbit has three API-based delivery types: via email, shortlinks, or in-app. All reporting and statistics are available for all delivery methods.
 
-#### Rewards embedded in your app or website
-You can provide recipients with an interactive reward selection area in your app or website where they can choose from a selection of reward brands and immediately be redirected to a Giftbit URL to reveal the gift code.  In this type of integration, you can use the results from the `/brands` endpoint to create the interactive reward selection step in your app or website and use the `/embedded` endpoint to request the chosen reward. 
+#### Giftbit Email Delivery
+Giftbit specializes in email deliverability and trusted best practices. We will deliver
+your customized gift offer to each supplied contact via an HTML email. Bounces, spam complaints, and other
+deliverability issues are available to you so that you can keep your recipient lists clean and of high
+quality.
 
-In-app delivery uses the `/embedded` endpoint described in the Reference section.
+Email delivery is done via the `/campaign` endpoint as described in the Reference section.
 
+#### Shortlinks
 
-### Retrieving Reward Brand Information
-By using the `/brands` endpoint, you can access the list of reward brands available from Giftbit and detailed information about each reward brand, including the `brand_code` and an allowed price to include in your API calls to `/campaign` or `/embedded`. 
+Shortlinks can be used when you want to deliver a unique link to a gift offer via your own email system, SMS, or another distribution method.
+Once a Shortlink has been created, you can distribute the link to the recipient by sharing it with them.
+When the recipient opens the link, the set message and gift offer(s) will display allowing the user to navigate through to redeem their gift of choice.
+Your account will need additional permissions to access Shortlink APIs. For details contact us at testbed@giftbit.com.
 
-A limited number of reward brands are available for testing purposes in Testbed. The complete list of production reward brands is found at [www.giftbit.com/brands](https://www.giftbit.com/brands/)
+Generating Shortlinks is done via the `/campaign` endpoint as described in the Reference section.
 
-Searching, filtering, and result paging uses the `/brands` endpoint described in the Reference section.
-
-### Using Templates With Email and Link-based Rewards
+##### Using Templates With Email Delivery & Shortlinks
 Templates allow your gift messages to be richly formatted and provide a nice separation of responsibility
-between content creators and developers. This is done by allowing the gift content (subject, the message with formatting and rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
-without requiring any changes to the API calls themselves when the content changes. To get started with templates navigate to the templates section of your Giftbit account.
-
-
+between content creators and developers. This is done by allowing the gift content (subject, the message with formatting and
+rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
+without requiring any changes to the API calls themselves when the content
+changes. To get started with templates navigate to the templates section of your Giftbit account.
+<br><br>
 Each template will be auto-assigned a unique uppercase short identifier shown in the web interface. This is the
-id you'll use in the `gift_template` field of the `/campaign` creation request. Note that if you provide a gift template then you must omit the message and subject in the request unless you want to override the template content in that particular
+id you'll use in the `gift_template` field of the `/campaign` creation request. Note that if you provide a gift template
+then you must omit the message and subject in the request unless you want to override the template content in that particular
 request.
 
 While we highly recommend using templates, it is not mandatory. You may specify the subject and message for your offers via the `/campaign` creation request.
-
-### Reward Information and Management
-While not required for integration, the `/gifts` endpoint retrieves information about rewards ordered through the `/campaign` or `/embedded` endpoints and allows your system to perform lifecycle and delivery-type dependent actions, such as triggering another delivery attempt or canceling unclaimed rewards.
 
 *NOTE:* For Shortlinks, the `subject` field won't be leveraged however we still recommend setting it in the template. This allows the template to be used with both Email Delivery and Shortlinks.
 
@@ -145,16 +151,24 @@ Your account will need additional permissions to access In-App Delivery APIs. Fo
 
 In-App delivery is done via the `/embedded` endpoint as described in the Reference section.
 
-## Going Live
-When your integration is ready to launch, sign up at www.giftbit.com and contact sales@giftbit.com to signal production readiness. The Giftbit team will enable permissions to generate an API token in your production account.
+### Step 3: Going Live
+
+Contact the Giftbit API support team at testbed@giftbit.com when you are ready for production access.  You will need to include in your email:
+* Screenshots or a video of your user facing flow.
+* The email address of the production Giftbit account you have created.  As this email address will be the reply-to of your gift offer emails sent from Giftbit, we recommend something along the lines of 'gifts@yourdomain.com'
 
 
-### Providing feedback on the API Documentation
+### Step 4: Gift Offer Information and Management (optional)
 
-The Giftbit team makes heavy use of external APIs ourselves, and we know how frustrating it can be when the documentation is unclear or doesn't match the actual API behaviour. If you find any such problems with ours, don't hesitate to let us know via testbed@giftbit.com
+While not required for an integration, the `/gifts` endpoint provides the ability to get information about previously sent gifts through the `/campaign` or `/embedded` endpoints and perform (lifecycle and delivery type dependant) actions on those gifts such as triggering a redelivery or cancellation.
+
+## Providing feedback on the API Documentation
+
+The Giftbit team makes heavy use of external APIs ourselves, and we know how frustrating it can be when the documentation is unclear or doesn't match the actual API behaviour.  If you find any such problems with ours, don't hesitate to let us know via testbed@giftbit.com
 
 ## Ping [/ping]
-`GET` `/ping` provides a way to test your authentication and check the health of the Giftbit API.
+The ping endpoint provides a quick and convenient way to test your authentication and allows you to healthcheck the Giftbit API if desired.
+A successful response will include the name and email of the Giftbit account associated with the API key used for authentication.
 
 ### ping [GET /ping]
 + Request
@@ -196,12 +210,11 @@ The Giftbit team makes heavy use of external APIs ourselves, and we know how fru
 
 
 ## Brands [/brands]
+The `/brands` endpoint returns Giftbit's gift card brands available to you.   It provides complete search, filter, and paging functionality and is used in all use cases.
 
-`GET` `/brands` returns a list of reward brands available from Giftbit and detailed information, including the `brand_code` and an allowed price to include in your API calls to `/campaign` or `/embedded`. Some brands only allow certain fixed values, while others have an allowed range.
+The `brand_code` returned, along with a valid price for the brand, is all you need to create your gift offers through the `campaign` endpoint.
 
-You can restrict the results list with any combination of price, currency, region, or search terms. The `/brands` endpoint supports the paging of results.
-
-`GET` `/brands/{brand_code}` retrieves extended information about the specified brand.
+Note that when you retrieve a single brand via the `/brands/{brand_code}` call, extended information about the brand is provided such as a full description and the allowed price range (or fixed set of allowed prices, depending on the brand).
 
 
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}]
@@ -336,7 +349,7 @@ You can restrict the results list with any combination of price, currency, regio
 
 ## Regions [/regions]
 
-`GET` `/regions` returns a list of the regions that filter results from the `/brands` endpoint. Regions are used to request a Full Catalog reward from the `/campaign` endpoint. 
+Lists all available regions.  The id returned can be used in conjunction with `/brands` to filter brand results to particular region.
 
 ## list regions [GET /regions]
 + Request (application/json)
@@ -396,46 +409,17 @@ You can restrict the results list with any combination of price, currency, regio
 
 ## Campaign [/campaign]
 
-`POST` to `/campaign` places an order for one or more email or link-based rewards. See the "create order" reference for detailed information on the request and response bodies.
+A Campaign represents a gift offer to one or more recipients delivered by Giftbit via email, and one or more brands from the `/brands` endpoint that each recipient can choose from as part of the claim experience.  See the "create campaign" reference for detailed information on the request and response bodies.
 
-The use of templates in API calls to `/campaign` is optional; however, all required parameters must be specified in the API call or set in the template using the web interface for a successful response.
+### Handling Network Timeouts on Creation
 
-You can send a predefined reward brand or a choice between reward brands. Each reward has a customizable claim period. 
+If you receive a network timeout or other unexpected response (such as a 5xx) when creating a campaign, send the `POST` again using the same supplied `id`.  Giftbit will only ever create one campaign with a given supplied `id`.  It is important you choose your `id` in such a way that they are always unique across different campaigns.
 
-If you do not specify the `delivery_type` the request will default to an email reward delivered by Giftbit, and at least one valid contact will be required.
+### Deciding on One or Multiple recipients per Campaign
 
-`GET` `/campaign/id` retrieves the status and information about the specified order.
+A common question is whether or not to include multiple recipients on a single POST to `/campaign`, or to POST to `/campaign` for each individual recipient.  There is no difference in cost or to the experience for your recipients. This is a decision that should be made based on how you wish to track and report on your gift offers in the future, and how your system that calls our API is designed.  We generally recommend a single recipient per campaign if all else is equal as this pattern usually results in the simplest code and the recipient getting their gift offer as close as possible to when it was earned.
 
-### Deciding between Customized Reward or Full Catalog Orders
-
-There are multiple ways to set the brand in a call to `/campaign` depending on whether your system will send a single reward brand or offer a choice, whether your system will host the interactive choice step or use Giftbit's Full Catalog format to display all brands for a given price during the claim process.
-
-The methods described below are compatible with email and link-based rewards using the `/campaign` endpoint.
-
-### Your system hosts the choice step
-
-If you host the interactive choice step in your app or website using the results from the `/brands` endpoint, you can specify the price and brand in each API call in reaction to the selection made by the recipient.
-
-If you specify the `gift_template` in your request, use the web interface to edit your template and check the box labeled “provide in API call” in the reward section of the template. Both `price_in_cents` and `brand_code` will be required in your API call for a successful response.
-
-If you don't specify the `gift_template` you will be required to provide all the required parameters in the API call, including the `price_in_cents` and `brand_code`
-
-### Your system sends one brand or a customized list of brands
-
-If your integration always sends the same brand or list of brands for each request, you can either set the brand(s) in your template using the web interface or specify a `brand_code` in the API call. If your API call contains more than one `brand_code` the recipient can choose from that list of predefined brand options during the claim process.
-
-### Giftbit provides the choice step in the claim process
-
-You can skip building the interactive choice step in your app or website by using the Full Catalog format to provide the recipient with a choice between all available reward brands at a given price during the claim process.
-
-If you do not specify the `gift_template` in your API call, omit the `brand_code` and specify the `region` with the `price_in_cents` to request a Full Catalog reward.
-
-If you specify the `gift_template` in your API call, use the web interface to edit your template, open the reward section of the template, set the price and region, and choose Full Catalog. 
-
-If you specify the `gift_template` with Full Catalog selected and the `price_in_cents` differs from the price set in the template, the claim process for the Full Catalog reward will automatically update to show brands that match the price override.
-
-
-### create order [POST /campaign]
+### create campaign [POST /campaign]
 + Request (application/json)
     + Headers
 
@@ -601,7 +585,7 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
             }
 
 
-### retrieve order by ID [GET /campaign/{id}]
+### retrieve campaign by id [GET /campaign/{id}]
 + Request (application/json)
     + Headers
 
@@ -680,16 +664,50 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
                }
             }
 
-## Links [/shortlink]
+## Shortlink [/shortlink]
 
-Link-based rewards are an alternative to email rewards delivered by Giftbit. Once you retrieve the URL for a link-based reward, your system can distribute the link to your recipient using an alternative email system, SMS, or another distribution method.  
-`POST` to `/campaign` with `delivery_type: "SHORTLINK"` places an order for one or more link-based rewards.
+Shortlinks can be used when you want to deliver a unique link to a gift offer via your own distribution method.
 
-`GET` `/links/{id}` retrieves the URL for the link-based reward following the campaign creation process. The URL will be ready after a short delay following the successful response from `/campaign`. We recommend polling the `/links` endpoint every 5 minutes until the URL is ready.
+To generate a Shortlink call the `/campaign` endpoint with `delivery_type: "SHORTLINK"`.
+Many Shortlinks can be created in a single request and allow the recipient to choose from the offered gifts
+in the template or set in `brand_codes`.
 
-No recipient contact is required to make a valid request if you specify `delivery_type: "SHORTLINK"` 
+Shortlinks take a moment before they are fully created.
+In order to retrieve the link(s) you can call `/links/{id}` to check the status and once ready the API will provide the actual shortlink URL(s).
 
-Optionally, you can specify a recipient contact in the API call to create a link-based reward, and the resulting link will be associated with the specified contact in the web interface and reporting. Giftbit will not attempt to deliver link-based rewards by email when you associate links with contacts.
+After which you can distribute the links to your recipient via any method you choose. Then the recipient can open the link to claim their gift offer.
+
+Your account will need additional permissions to access Shortlink APIs. For details contact us at testbed@giftbit.com.
+
+### Deciding on Shortlinks vs In-App Delivery
+
+Since Shortlinks and In-App Delivery both serve very similar use cases, it often can be difficult to choose
+which delivery type to leverage. The following section outlines the differences between the two delivery types:
+
+#### Shortlinks:
+
+- The distribution to recipients is handled via link sharing by you.
+- Multiple gift options can be included to choose from instead of pre-selecting only one gift.
+- Gift offers may be canceled so long as the gift offer has not been redeemed or has not yet expired.
+- Multiple links may be generated in a single request.
+
+#### In-App Delivery:
+
+- Designed to be embedded into an existing app with minimal Giftbit branding and with no additional message as part of the gift.
+- The redemption experience is more streamlined with only a single gift offer that is pre-selected.
+- Users are automatically directed to the selected card without the need for additional steps.
+- All gift offers are marked redeemed. They cannot be canceled once created nor will they expire.
+- Each API request generates a single gift.
+
+### Obtaining the Shortlink
+
+Once a Shortlink request has been made, and if there are sufficient funds, it will take a short period of time before the links become available.
+We recommend polling the links endpoint every 5 minutes until it is ready.
+You can tell if the links are ready by a status code provided in the response.
+
+### Handling Network Timeouts on Creation
+
+Please see the documentation on handling timeouts under the `/campaign` endpoint reference.
 
 ### create shortlink campaign [POST /campaign]
 + Request (application/json)
@@ -811,7 +829,7 @@ Optionally, you can specify a recipient contact in the API call to create a link
                "info":{
                   "code":"INFO_LINKS_GENERATION_IN_PROGRESS",
                   "name":"Links have not yet completed generating; request again in 5 minutes",
-                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the `/campaign` endpoint for more detail on your campaign"
+                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
                }
             }
 
@@ -841,15 +859,14 @@ Optionally, you can specify a recipient contact in the API call to create a link
 
 ## Embedded [/embedded]
 
-`POST` to `/embedded` is used to place an order for a reward for immediate in-app delivery in your app or website. The response includes a URL where the recipient will reveal their gift code.
+A POST to `/embedded` produces a digital gift for immediate in-app delivery, allowing your user to claim their gift within your own web or mobile application.
 
-In-app rewards are designed to be embedded into an existing app with minimal Giftbit branding and with no template content or message during the claim process. 
+Your account will need additional permissions to access In-App Delivery APIs. For details contact us at testbed@giftbit.com.
 
-Each API call specifies the `price_in_cents` and the `brand_code` and unique supplied `id` and produces a single reward.
+### Handling Network Timeouts on Creation
 
-Recipients are automatically directed to the card without additional claim steps.
+Please see the documentation on handling timeouts under the `/campaign` endpoint reference.
 
-All rewards are automatically claimed. They cannot be canceled once a gift code is revealed, nor will they expire.
 
 ### create embedded gift [POST /embedded]
 + Request (application/json)
@@ -959,10 +976,11 @@ All rewards are automatically claimed. They cannot be canceled once a gift code 
 
 
 ## Funds [/funds]
-`GET` `/funds` retrieves a real-time overview of your account balance. You can request a report through the web interface for individual funding event details.
-`POST` to `/funds` is used to top up your account balance with a credit card payment. You can use the web interface to place a credit card on file for each currency you plan to fund. The success response will provide your updated account balance.
+`GET` returns real-time information on your account funding overview. For per funding event detail, you can request a report through the web application.
 
-Contact finance@giftbit.com to inquire about other accepted payments, such as ACH, bank transfers, and automated direct debit payments.
+`POST` allows you to add funds to your account. Some configuration must first be completed in the web application. You will need a credit card on file for the currencies you plan to fund. Next, take note of the funding fee and minimum charge amount. Both of those details can be found under "Purchase Credits -> Auto-charge" in the web application. The response to `POST` `/funds` is your updated account balances.
+
+If you receive a network timeout or other unexpected response (such as a 5xx) when creating a funding event, send the `POST` again using the same supplied `id`. Giftbit will only ever create one funding event with a given supplied `id`. It is important you choose your `id` in such a way that they are always unique across different funding events.
 
 ### retrieve funding information [GET /funds]
 + Request (application/json)
@@ -1096,15 +1114,7 @@ Contact finance@giftbit.com to inquire about other accepted payments, such as AC
             }
 
 ## Gifts [/gifts]
-`GET` `/gifts/{uuid}` retrieves detailed information for the specified reward.
-
-`GET` `/gifts?campaign_uuid={campaign_uuid}` retrieves detailed information for the reward(s) related to the specified order.
-
-`PUT` `/gifts/{uuid}` reattempts delivery of the specified email reward. Reattempting delivery does not result in a new order or purchase. 
-
-`DELETE` `/gifts/{uuid}` cancels the specified unclaimed email reward or unclaimed link-based reward. 
-
-A reward is created automatically as a result of a successful `POST` to `/campaign` or `/embedded`. A `POST` to `/campaign` can create multiple rewards with a single order if the API call specifies multiple contacts or a `link_count` greater than 1.
+Detailed information on your sent gift offers.  A gift offer is automatically created for each recipient when a Campaign is created by the `/campaign` or `/embedded` endpoints.  This endpoint can be used to resend or cancel individual gift offers in addition to retrieving their details - note that once a gift offer has been claimed by the recipient it cannot be canceled.  Gifts delivered in-app by the `/embedded` endpoint cannot be resent or cancelled.
 
 All date/time fields are in Pacific Standard Time.
 
@@ -1155,7 +1165,7 @@ All date/time fields are in Pacific Standard Time.
                         issue to this recipient. This can be caused by issues like a full mailbox for their email
                         address. While they may eventually get their gift, It is not guaranteed so we suggest
                         following up with this recipient and resending their gift if necessary via the web
-                        interface or the `/gifts` API endpoint.
+                        interface or the /gifts API endpoint.
                     UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
                         previous gift offer email. You should remove them from all future campaigns as Giftbit
                         will return an error if you attempt to send to them again.
