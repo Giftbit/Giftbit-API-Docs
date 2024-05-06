@@ -426,11 +426,11 @@ If your integration always sends the same brand or list of brands for each reque
 
 By utilizing the Full Catalog format, you can bypass the need for the interactive choice step within your app or website. This format presents the recipient with the option to choose from all available reward brands at a specific price point during the claim process.
 
-To request a Full Catalog reward, you can omit the brand_code and specify the region along with price_in_cents in your API call, provided that the gift_template is not specified.
+To request a Full Catalog reward, you can omit the `brand_code` and specify the `region` along with `price_in_cents` in your API call, provided that the `gift_template` is not specified.
 
-If you choose to specify the gift_template in your API call, you should use the web interface to modify your template. Navigate to the reward section of the template, set the desired price and region, and select Full Catalog.
+If you choose to specify the `gift_template` in your API call, you should use the web interface to modify your template. Navigate to the reward section of the template, set the desired price and region, and select Full Catalog.
 
-In cases where the gift_template is specified with Full Catalog selected, and the price_in_cents provided differs from the price set in the template, the claim process for the Full Catalog reward will automatically adjust to display brands that align with the overridden price.
+In cases where the `gift_template` is specified with Full Catalog selected, and the `price_in_cents` provided differs from the price set in the template, the claim process for the Full Catalog reward will automatically adjust to display brands that align with the overridden price.
 
 ### create order [POST /campaign]
 + Request (application/json)
