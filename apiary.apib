@@ -28,7 +28,7 @@ Here is a list of the key differences between Giftbit’s Testbed and Production
 * Reward emails and other notifications sent through Testbed will be sent to the email address you provided for your username instead of the specified recipient email(s).
 * Testbed reward emails have a header identifying them as test emails.
 * There is a limited number of reward brands available in Testbed. The complete list of Production reward brands is found at [www.giftbit.com/brands](https://www.giftbit.com/brands/)
-* You will have a different API keys and separate account settings setup for Testbed and production.
+* You will have a different API token and separate account settings setup for Testbed and production.
 * To encourage continuous integration testing against the Testbed API, you are provided with a large virtual account balance in Testbed.
 * Your Testbed account comes with test credit cards to simulate USD and CAD credit card payments to Giftbit. These card numbers are intended for testing purposes only and do not use real money.
 
@@ -84,7 +84,7 @@ Example:
 
 **402:** Credit Card charge failure. Request was correct, but card was not charged.
 
-***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid. An example would be trying to create a campaign with a gift value outside of the allowed range for that brand. Ensure the request parameters are valid.
+***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid. An example would be trying to create an order with a reward value outside of the allowed range for that brand. Ensure the request parameters are valid.
 
 ***429:*** Too many requests. The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. It is recommended that if you do recieve a 429 response, your code automatically retry your request with a backoff delay. Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for any request. If you feel you are being frequently rate limited in a valid usage pattern, please contact support.
 
@@ -92,7 +92,7 @@ Example:
 
 #### Handling Timeouts
 
-If you receive a network timeout or other unexpected response (such as a 5xx) when creating a campaign or an embedded reward, resend the POST request to `/campaign` or `/embedded` using the same supplied `id`. The supplied `id` is idempotent, Giftbit will only ever create one order with a given supplied `id`. The supplied `id` must always be unique across different requests.
+If you receive a network timeout or other unexpected response (such as a 5xx) when creating a order or an embedded reward, resend the POST request to `/campaign` or `/embedded` using the same supplied `id`. The supplied `id` is idempotent, Giftbit will only ever create one order with a given supplied `id`. The supplied `id` must always be unique across different requests.
 
 We highly recommend using exponential backoff with a limited amount of tries for timeouts and unexpected responses (such as a 5xx) with clear logging or alerts to allow for investigation.
 
@@ -117,7 +117,7 @@ After retrieving the unique link, you can pass it to another system and deliver 
 
 #### Rewards embedded in your app or website
 
-You can provide recipients with an interactive reward selection area in your app or website where they can choose from a selection of reward brands and immediately be redirected to a Giftbit URL to reveal the gift code. 
+You can provide recipients with an interactive reward selection area in your app or website where they can choose from a selection of reward brands and immediately be redirected to a Giftbit URL to reveal the reward code. 
 In this type of integration, you can use the results from the `/brands` endpoint to create the interactive reward selection step in your app or website and use the `/embedded` endpoint to request the chosen reward. 
 
 In-app delivery uses the `/embedded` endpoint described in the Reference section.
@@ -130,12 +130,12 @@ Searching, filtering, and result paging uses the `/brands` endpoint described in
 
 ### Using Templates With Email and Link-based Rewards
 
-Templates allow your gift messages to be richly formatted and provide a nice separation of responsibility between content creators and developers. 
-This is done by allowing the gift content (subject, the message with formatting and rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
+Templates allow your reward messages to be richly formatted and provide a nice separation of responsibility between content creators and developers. 
+This is done by allowing the reward content (subject, the message with formatting and rich content, and company brand image) to be maintained through the web interface and WYSIWYG editor,
 without requiring any changes to the API calls themselves when the content changes. To get started with templates navigate to the templates section of your Giftbit account.
 Each template will be auto-assigned a unique uppercase short identifier shown in the web interface. 
 This is the id you'll use in the `gift_template` field of the `/campaign` creation request. 
-Note that if you provide a gift template then you must omit the message and subject in the request unless you want to override the template content in that particular request.
+Note that if you provide a template then you must omit the message and subject in the request unless you want to override the template content in that particular request.
 
 While we highly recommend using templates, it is not mandatory. You may specify the subject and message for your offers via the `/campaign` creation request.
 
@@ -143,12 +143,6 @@ While we highly recommend using templates, it is not mandatory. You may specify 
 
 ### Reward Information and Management
 While not required for integration, the `/gifts` endpoint retrieves information about rewards ordered through the `/campaign` or `/embedded` endpoints and allows your system to perform lifecycle and delivery-type dependent actions, such as triggering another delivery attempt or canceling unclaimed rewards.
-
-#### In-App Delivery
-In-App delivery allows you to embed the digital gift card to your recipient within your own web or mobile application, thereby keeping your user entirely within your own branded experience.
-Your account will need additional permissions to access In-App Delivery APIs. For details contact us at testbed@giftbit.com.
-
-In-App delivery is done via the `/embedded` endpoint as described in the Reference section.
 
 ### Going Live
 
@@ -211,9 +205,9 @@ You can restrict the results list with any combination of price, currency, regio
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}]
 + Parameters
     + region (number, optional) - Limits the results to brands that are available in the provided region as per the `id` returned from the `/region` endpoint.
-    + `max_price_in_cents` (number, optional) - Limits the results to brands that have an available gift  option less than or equal to this value.
-    + `min_price_in_cents` (number, optional) - Limits the results to brands that have an available gift  option greater than or equal to this value.
-    + currencyisocode (string, optional) - Limits the results to brands that have an available gift matching the provided currency. Options:
+    + `max_price_in_cents` (number, optional) - Limits the results to brands that have an available reward option less than or equal to this value.
+    + `min_price_in_cents` (number, optional) - Limits the results to brands that have an available reward option greater than or equal to this value.
+    + currencyisocode (string, optional) - Limits the results to brands that have an available reward matching the provided currency. Options:
         * CAD
         * USD
         * AUD
@@ -232,7 +226,7 @@ You can restrict the results list with any combination of price, currency, regio
 
     + Attributes
         + brands
-            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your gift offers.
+            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your reward offers.
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
@@ -284,16 +278,16 @@ You can restrict the results list with any combination of price, currency, regio
 
     + Attributes
         + brands
-            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your gift offers.
+            + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your reward offers.
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
             + `regions` (array[number]) - a list of region ids (corresponding to the `/regions` endpoint in which this brand is available
             + `fund_currencyisocode` (string) - The three character currency code for this brand.
-            + `variable_price` (boolean) - true if this brand allows gifts to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents' will be set
-            + `min_price_in_cents` (number, optional) - Gives the minimum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
-            + `max_price_in_cents` (number, optional) - Gives the maximum possible gift value for variable price brands.  Will be present in the response only if variable_price=true
-            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible gift values for non variable price brands.  Will be present in the response only if variable_price=false
+            + `variable_price` (boolean) - true if this brand allows rewards to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents' will be set
+            + `min_price_in_cents` (number, optional) - Gives the minimum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `max_price_in_cents` (number, optional) - Gives the maximum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible reward values for non variable price brands.  Will be present in the response only if variable_price=false
 
         + info
             + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
@@ -398,7 +392,7 @@ You can restrict the results list with any combination of price, currency, regio
 + lastname: Johnson (optional)
 
 
-## Campaign [/campaign]
+## Order [/campaign]
 
 `POST /campaign` places an order for one or more email or link-based rewards. See the "create order" reference for detailed information on the request and response bodies.
 
@@ -430,13 +424,13 @@ If your integration always sends the same brand or list of brands for each reque
 
 #### Giftbit provides the choice step in the claim process
 
-You can skip building the interactive choice step in your app or website by using the Full Catalog format to provide the recipient with a choice between all available reward brands at a given price during the claim process.
+By utilizing the Full Catalog format, you can bypass the need for the interactive choice step within your app or website. This format presents the recipient with the option to choose from all available reward brands at a specific price point during the claim process.
 
-If you do not specify the `gift_template` in your API call, omit the `brand_code` and specify the `region` with the `price_in_cents` to request a Full Catalog reward.
+To request a Full Catalog reward, you can omit the brand_code and specify the region along with price_in_cents in your API call, provided that the gift_template is not specified.
 
-If you specify the `gift_template` in your API call, use the web interface to edit your template, open the reward section of the template, set the price and region, and choose Full Catalog. 
+If you choose to specify the gift_template in your API call, you should use the web interface to modify your template. Navigate to the reward section of the template, set the desired price and region, and select Full Catalog.
 
-If you specify the `gift_template` with Full Catalog selected and the `price_in_cents` differs from the price set in the template, the claim process for the Full Catalog reward will automatically update to show brands that match the price override.
+In cases where the gift_template is specified with Full Catalog selected, and the price_in_cents provided differs from the price set in the template, the claim process for the Full Catalog reward will automatically adjust to display brands that align with the overridden price.
 
 ### create order [POST /campaign]
 + Request (application/json)
@@ -446,15 +440,15 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
             Accept-Encoding: identity
 
     + Attributes
-        + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
-        + subject: `Example: Please enjoy this gift!` (string, optional) - Gift email subject. Required if no supplied template.
-        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create campaign API call.
+        + message: `Example: The reward message!` (string, optional) - Reward email message. Required if no supplied template.
+        + subject: `Example: Please enjoy this reward!` (string, optional) - Reward email subject. Required if no supplied template.
+        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this order, as per the template section of your web account.  Recommended, but not required if providing the `message` and `subject` as part of the create order API call.
         + `contacts` (array[Contact], required) - A list of contact objects and is required.
-        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
-        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], optional) - custom list of one or more brand_code as given by the `/brands` endpoint to send in your campaign. Use this to limit choice to a few select brands.
+        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 reward offer for the given brand(s)
+        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], optional) - custom list of one or more brand_code as given by the `/brands` endpoint to send in your order. Use this to limit choice to a few select brands.
         + `region`: `Example: CA` (string, optional) - ISO 3166-2 region code to select the Full Catalog region recipients will get to choose a brand from as a part of the claim process.
-        + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
-        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+        + expiry: `Example: YYYY-MM-dd` (string, required) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + id: `Example: abc123` (string, required) - An identifier for the order assigned by the client (you).  Must be unique across all your orders.  If an unexpected error occurs sending your order, you can safely send the same POST again with the same `id`.
 
 
     + Body
@@ -486,36 +480,36 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
     + Attributes
         + info
             + code (string) - Status code for request. Possibilities:
-                    `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
-                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
-                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+                    `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
+                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
+                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
 
         + campaign
-            + message (string) - The message for the campaign.
-            + subject (string) - The subject for the campaign.
-            + contacts (object) - A list of contacts the campaign is being sent to.
-            + price_in_cents (number) - The amount of the gift offer to each recipient.
-            + brand_codes (array[string]) - Custom list of gift brand(s) sent.
+            + message (string) - The message for the order.
+            + subject (string) - The subject for the order.
+            + contacts (object) - A list of contacts the order is being sent to.
+            + price_in_cents (number) - The amount of the reward offer to each recipient.
+            + brand_codes (array[string]) - Custom list of reward brand(s) sent.
             + region (string) - Full Catalog ISO 3166-2 region code. Possibilities:
                 US - United States
                 CA - Canada
-            + status (string) - The status of the campaign. Possibilities:
-                API_CREATING - The campaign is in the process of being created.
-                AWAITING_FUNDS - The campaign has not yet been delivered to the recipient(s)
+            + status (string) - The status of the order. Possibilities:
+                API_CREATING - The order is in the process of being created.
+                AWAITING_FUNDS - The order has not yet been delivered to the recipient(s)
                         because of insufficient funds in your Giftbit account. You do NOT need to
-                        resend the campaign as soon as you add funds to your account or your pending
-                        funds clear, the campaign will be automatically delivered to your recipients.
-                CAMPAIGN_CREATED - The campaign has been created. Note the gift emails may still be in the process of being delivered at this point.
-            + uuid (string) - A unique identifier for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
-            + `delivery_type` (string) - The delivery type of the campaign. Possibilities:
+                        resend the order as soon as you add funds to your account or your pending
+                        funds clear, the order will be automatically delivered to your recipients.
+                CAMPAIGN_CREATED - The order has been created. Note the reward emails may still be in the process of being delivered at this point.
+            + uuid (string) - A unique identifier for the order generated by Giftbit. This id can be used to retrieve the order.
+            + `delivery_type` (string) - The delivery type of the order. Possibilities:
 
                     GIFTBIT_EMAIL
 
-            + expiry (string) - The campaign's claim before date as described in creation parameters.
+            + expiry (string) - The order's claim before date as described in creation parameters.
             + `contact_success_count` (number) - The number of contacts added successfully.
-            + `contact_failure_count` (number) - The number of contacts that could not be added to the campaign. This occurs for instance when a contact email has been flagged as undeliverable.
-        + fees - Information about the cost of the campaign and any associated fees at creation or completion time.
-        + id (string) - The client provided id for the campaign.
+            + `contact_failure_count` (number) - The number of contacts that could not be added to the order. This occurs for instance when a contact email has been flagged as undeliverable.
+        + fees - Information about the cost of the order and any associated fees at creation or completion time.
+        + id (string) - The client provided id for the order.
     + Body
 
             {
@@ -527,7 +521,7 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
                "status":200,
                "campaign":{
                   "message":"Thanks for being such an awesome customer!",
-                  "subject":"Please enjoy this gift!",
+                  "subject":"Please enjoy this reward!",
                   "contacts":[
                      {
                         "email":"pjhonson@giftbit.com",
@@ -616,13 +610,13 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
             Accept-Encoding: identity
 
 + Parameters
-    + `id`: clientProvidedGiftId_abc123 (required) - The campaign id. This id is the identifier for the campaign assigned by the client or the uuid which is assigned by Giftbit.
+    + `id`: clientProvidedGiftId_abc123 (required) - The order id. This id is the identifier for the order assigned by the client or the uuid which is assigned by Giftbit.
 
 + Response 200
     + Attributes
         + info
             + code (string) - Status code for the request. [INFO_CAMPAIGN_RETRIEVED]
-        + campaign (object) - The returned campaign object.
+        + campaign (object) - The returned order object.
     + Body
 
             {
@@ -633,7 +627,7 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
                },
                "campaign":{
                   "message":"Thanks for being such an awesome customer!",
-                  "subject":"Please enjoy this gift!",
+                  "subject":"Please enjoy this reward!",
                   "contacts":[
                      {
                         "email":"pgibbons@giftbit.com",
@@ -692,7 +686,7 @@ If you specify the `gift_template` with Full Catalog selected and the `price_in_
 Link-based rewards are an alternative to email rewards delivered by Giftbit. Once you retrieve the URL for a link-based reward, your system can distribute the link to your recipient using an alternative email system, SMS, or another distribution method.  
 A request `POST /campaign` with `delivery_type: "SHORTLINK"` places an order for one or more link-based rewards.
 
-`GET /links/{id}` retrieves the URL for the link-based reward following the campaign creation process. 
+`GET /links/{id}` retrieves the URL for the link-based reward following the order creation process. 
 The URL will be ready after a short delay following the successful response from `/campaign`. 
 We recommend polling the `/links` endpoint every 5 minutes until the URL is ready.
 
@@ -707,14 +701,14 @@ Giftbit will not attempt to deliver link-based rewards by email when you associa
             Accept-Encoding: identity
 
     + Attributes
-        + message: `Example: The gift message!` (string, optional) - Gift email message. Required if no supplied template.
-        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this campaign, as per the template section of your web account.  Recommended, but not required if providing the `message` as part of the create shortlink campaign API call.
+        + message: `Example: The reward message!` (string, optional) - Reward email message. Required if no supplied template.
+        + `gift_template`: `Example: ABCDE` (string, optional) - The template id used for this order, as per the template section of your web account.  Recommended, but not required if providing the `message` as part of the create shortlink order API call.
         + `delivery_type`: `Example: Shortlink` (string, required) - Must be set to "SHORTLINK"
-        + `link_count` (number, required) - Amount of gift links to generate (must be a positive integer)
-        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 gift offer for the given brand(s)
-        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your campaign.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
-        + expiry: `Example: YYYY-MM-dd` (string, required) - The campaign's claim before date. After the end of this date (in Pacific Standard Time), recipients in this campaign will not be able to redeem their gift offers and the appropriate portion of the credits for any unclaimed gift offers will be returned to your account.  It may not exceed one year from the time of creation.
-        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+        + `link_count` (number, required) - Amount of reward links to generate (must be a positive integer)
+        + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 reward offer for the given brand(s)
+        + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your order.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
+        + expiry: `Example: YYYY-MM-dd` (string, required) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + id: `Example: abc123` (string, required) - An identifier for the order assigned by the client (you).  Must be unique across all your orders.  If an unexpected error occurs sending your order, you can safely send the same POST again with the same `id`.
 
     + Body
 
@@ -734,9 +728,9 @@ Giftbit will not attempt to deliver link-based rewards by email when you associa
 
 + Response 200
     + Attributes
-        + `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
-        + `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
-        + `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+        + `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
+        + `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
+        + `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
         + fees - Depending on your giftbit account some of the fields returned in the fee section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
     + Body
 
@@ -750,7 +744,7 @@ Giftbit will not attempt to deliver link-based rewards by email when you associa
               "status": 200,
               "campaign": {
                 "message": "Thanks for being such an awesome customer!",
-                "subject": "Please enjoy this gift!",
+                "subject": "Please enjoy this reward!",
                 "contacts": null,
                 "status": "API_CREATING",
                 "uuid": "49e90cb2616b4893b55871a1786f84b0",
@@ -806,12 +800,12 @@ Giftbit will not attempt to deliver link-based rewards by email when you associa
             Accept-Encoding: identity
 
 + Parameter
-    + id: `clientProvidedGiftId_abc123` (number, required) - The client provided id of the campaign.
+    + id: `clientProvidedGiftId_abc123` (number, required) - The client provided id of the order.
 
 + Response 200
     + Attributes
-        + `INFO_LINKS` - Your gift offers are ready and the links are returned.
-        + `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your gift offers. Try again in 5 minutes
+        + `INFO_LINKS` - Your reward offers are ready and the links are returned.
+        + `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your reward offers. Try again in 5 minutes
 
     + Body
 
@@ -819,7 +813,7 @@ Giftbit will not attempt to deliver link-based rewards by email when you associa
                "info":{
                   "code":"INFO_LINKS_GENERATION_IN_PROGRESS",
                   "name":"Links have not yet completed generating; request again in 5 minutes",
-                  "message":"Link generation is not complete. Large campaigns will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your campaign"
+                  "message":"Link generation is not complete. Large orders will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your order"
                }
             }
 
@@ -849,7 +843,7 @@ Giftbit will not attempt to deliver link-based rewards by email when you associa
 
 ## Embedded [/embedded]
 
-A `POST /embedded` request is used to place an order for a reward for immediate in-app delivery in your app or website. The response includes a URL where the recipient will reveal their gift code.
+A `POST /embedded` request is used to place an order for a reward for immediate in-app delivery in your app or website. The response includes a URL where the recipient will reveal their reward code.
 
 In-app rewards are designed to be embedded into an existing app with minimal Giftbit branding and with no template content or message during the claim process.
 
@@ -857,7 +851,7 @@ Each API call specifies the `price_in_cents` and the `brand_code` and unique sup
 
 Recipients are automatically directed to the card without additional claim steps.
 
-All rewards are automatically claimed. They cannot be canceled once a gift code is revealed, nor will they expire.
+All rewards are automatically claimed. They cannot be canceled once a reward code is revealed, nor will they expire.
 
 ### create embedded reward [POST /embedded]
 + Request (application/json)
@@ -868,9 +862,9 @@ All rewards are automatically claimed. They cannot be canceled once a gift code 
 
     + Attributes
 
-        + `price_in_cents`: `2500` (number, required) - the value of the digital gift you are creating, in cents.  A value of 2500 would create a $25 gift for the given brand.
+        + `price_in_cents`: `2500` (number, required) - the value of the digital reward you are creating, in cents.  A value of 2500 would create a $25 reward for the given brand.
         + `brand_code`: `Example:itunesus` (string, required) - a brand_code as given by the `/brands` endpoint.
-        + id: `Example: abc123` (string, required) - An identifier for the campaign assigned by the client (you).  Must be unique across all your campaigns.  If an unexpected error occurs sending your campaign, you can safely send the same POST again with the same `id`.
+        + id: `Example: abc123` (string, required) - An identifier for the order assigned by the client (you).  Must be unique across all your orders.  If an unexpected error occurs sending your order, you can safely send the same POST again with the same `id`.
 
 
 
@@ -886,17 +880,17 @@ All rewards are automatically claimed. They cannot be canceled once a gift code 
     + Attributes
         + info
             + code (string) - Status code for request. Possibilities:
-                    `INFO_CAMPAIGN_CREATED` - Campaign creation has begun successfully
-                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Campaign creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the campaign. Note you do not need to resend the campaign. It will automatically be sent when there are enough funds in your account.
-                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The campaign creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the campaign as soon as your pending funds clear and become available, the campaign will be automatically delivered to your recipients.
+                    `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
+                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
+                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
 
         + campaign
-            + price_in_cents (number) - The amount of the gift.
-            + brand_code (string) - The brand of gift .
-            + uuid (string) - A unique identifier for the campaign generated by Giftbit. This id can be used to retrieve the campaign.
-        + fees - Information about the cost of the campaign and any associated fees at creation or completion time.
-        + id (string) - The client provided id for the campaign.
-        + gift_link (string) - The unique gift link for embedding your gift as per the integration guide.
+            + price_in_cents (number) - The amount of the reward.
+            + brand_code (string) - The brand of reward.
+            + uuid (string) - A unique identifier for the order generated by Giftbit. This id can be used to retrieve the order.
+        + fees - Information about the cost of the order and any associated fees at creation or completion time.
+        + id (string) - The client provided id for the order.
+        + gift_link (string) - The unique reward link for embedding your reward as per the integration guide.
     + Body
 
             {
@@ -983,9 +977,9 @@ Contact finance@giftbit.com to inquire about other accepted payments, such as AC
 + Response 200
     + Attributes
         + fundsbycurrency - USD, CAD, PRO (demo credits)
-        + `available_in_cents` (number) - Value, in cents of available funds in your account. This is your purchasing power for new gift campaigns.
+        + `available_in_cents` (number) - Value, in cents of available funds in your account. This is your purchasing power for new reward orders.
         + `pending_in_cents` (number) - Value, in cents, of funds for your account that have been sent by you but yet fully processed by Giftbit. These will move to available balance once processed.
-        + `reserved_in_cents` (number) - Value, in cents, of funds that are held to cover the cost of outstanding gift offers that have not yet been claimed and are still within the claim before date.
+        + `reserved_in_cents` (number) - Value, in cents, of funds that are held to cover the cost of outstanding reward offers that have not yet been claimed and are still within the claim before date.
     + Body
 
             {
@@ -1036,9 +1030,9 @@ Contact finance@giftbit.com to inquire about other accepted payments, such as AC
 + Response 200
     + Attributes
         + fundsbycurrency - USD, CAD, PRO (demo credits)
-        + `available_in_cents` (number) - Value, in cents of available funds in your account. This is your purchasing power for new gift campaigns.
+        + `available_in_cents` (number) - Value, in cents of available funds in your account. This is your purchasing power for new reward orders.
         + `pending_in_cents` (number) - Value, in cents, of funds for your account that have been sent by you but yet fully processed by Giftbit. These will move to available balance once processed.
-        + `reserved_in_cents` (number) - Value, in cents, of funds that are held to cover the cost of outstanding gift offers that have not yet been claimed and are still within the claim before date.
+        + `reserved_in_cents` (number) - Value, in cents, of funds that are held to cover the cost of outstanding reward offers that have not yet been claimed and are still within the claim before date.
     + Body
 
             {
@@ -1104,16 +1098,16 @@ Contact finance@giftbit.com to inquire about other accepted payments, such as AC
                 "status": 400
             }
 
-## Gifts [/gifts]
+## Rewards [/gifts]
 This set of endpoints serves multiple purposes - it allows for the resending or cancellation of individual rewards, as well as the retrieval of their details. 
 
-However, it's important to note that once a reward has been claimed by the recipient, it cannot be cancelled. Additionally, gifts that have been delivered in-app via the `/embedded` endpoint are not eligible for resending or cancellation.
+However, it's important to note that once a reward has been claimed by the recipient, it cannot be cancelled. Additionally, rewards that have been delivered in-app via the `/embedded` endpoint are not eligible for resending or cancellation.
 
 A reward is created automatically as a result of a successful `POST` to `/campaign` or `/embedded`. A `POST` to `/campaign` can create multiple rewards with a single order if the API call specifies multiple contacts or a `link_count` greater than 1.
 
 All date/time fields are in Pacific Standard Time.
 
-### list gifts [GET /gifts{?uuid}{?campaign_uuid}{?campaign_id}{?price_in_cents_greater_than}{?price_in_cents_less_than}{?recipient_name}{?recipient_email}{?delivery_status}{?status}{?created_date_greater_than}{?created_date_less_than}{?delivery_date_greater_than}{?delivery_date_less_than}{?redelivery_count_greater_than}{?redelivery_count_less_than}{?redeemed_date_greater_than}{?redeemed_date_less_than}{?limit}{?offset}{?sort}{?order}]
+### list rewards [GET /gifts{?uuid}{?campaign_uuid}{?campaign_id}{?price_in_cents_greater_than}{?price_in_cents_less_than}{?recipient_name}{?recipient_email}{?delivery_status}{?status}{?created_date_greater_than}{?created_date_less_than}{?delivery_date_greater_than}{?delivery_date_less_than}{?redelivery_count_greater_than}{?redelivery_count_less_than}{?redeemed_date_greater_than}{?redeemed_date_less_than}{?limit}{?offset}{?sort}{?order}]
 + Request (application/json)
     + Headers
 
@@ -1121,70 +1115,70 @@ All date/time fields are in Pacific Standard Time.
             Accept-Encoding: identity
 
 + Parameters
-    + uuid (string, optional) - Return the gift with matching uuid.
-    + campaign_uuid (string, optional) -​Filter gifts by the campaign with the matching uuid.
-    + `campaign_id` (string, optional) -​Filter gifts by the campaign with the matching campaign id.
-    + `price_in_cents_greater_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_greater_than` can be used to filter gifts with prices in cents greater than the supplied value.
-    + `price_in_cents_less_than` (number, optional) -​Filter gift by their price in cents. Gifts from a gift of choice campaign may not have this value set. `price_in_cents_less_than` can be used to filter gifts with prices in cents less than the supplied value.
-    + `recipient_name` (string, optional) - Filter gifts by the name, or part of the name of the recipient. The search string must be at least 3 characters long.
-    + `recipient_email` (string, optional) -​Filter gifts by the email address, or part of the email of the recipient. The search string must be at least 3 characters long.
-    + `delivery_status` (string, optional) - Filter gifts by their delivery status. Delivery status can be one of `UNSENT`, `DELIVERED`, `UNDELIVERABLE`, `TEMPORARILY_UNDELIVERABLE`, `UNSUBSCRIBED`, `COMPLAINT`.
-    + status (string, optional) - Filter gifts by their status. Options: `SENT_AND_REDEEMABLE`, `REDEEMED`, `TO_CHARITY`, `GIVER_CANCELLED`, or `EXPIRED`.
-    + `created_date_greater_than` (string, optional) - Filter gifts by their created date. Format `yyyy-MM-dd HH:mm:ss`.
-    + `created_date_less_than` (string, optional) - Filter gifts by their created date. Format `yyyy-MM-dd HH:mm:ss`.
-    + `delivery_date_greater_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
-    + `delivery_date_less_than` (string, optional) - Filter gifts by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
-    + `redelivery_count_greater_than` (number, optional) - Filter gifts by their redelivery count.
-    + `redelivery_count_less_than` (number, optional) - Filter gifts by their redelivery count.
-    + `redeemed_date_greater_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
-    + `redeemed_date_less_than` (number, optional) - Filter gifts by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
-    + limit (number, optional) - The maximum number of gifts to return at once. Default 20.
-    + offset (number, optional) - The offset of the first gift in the total results. Default 0.
+    + uuid (string, optional) - Return the reward with matching uuid.
+    + campaign_uuid (string, optional) -​Filter rewards by the order with the matching uuid.
+    + `campaign_id` (string, optional) -​Filter rewards by the order with the matching order id.
+    + `price_in_cents_greater_than` (number, optional) -​Filter reward by their price in cents. Rewards from a reward of choice order may not have this value set. `price_in_cents_greater_than` can be used to filter rewards with prices in cents greater than the supplied value.
+    + `price_in_cents_less_than` (number, optional) -​Filter reward by their price in cents. Rewards from a reward of choice order may not have this value set. `price_in_cents_less_than` can be used to filter rewards with prices in cents less than the supplied value.
+    + `recipient_name` (string, optional) - Filter rewards by the name, or part of the name of the recipient. The search string must be at least 3 characters long.
+    + `recipient_email` (string, optional) -​Filter rewards by the email address, or part of the email of the recipient. The search string must be at least 3 characters long.
+    + `delivery_status` (string, optional) - Filter rewards by their delivery status. Delivery status can be one of `UNSENT`, `DELIVERED`, `UNDELIVERABLE`, `TEMPORARILY_UNDELIVERABLE`, `UNSUBSCRIBED`, `COMPLAINT`.
+    + status (string, optional) - Filter rewards by their status. Options: `SENT_AND_REDEEMABLE`, `REDEEMED`, `TO_CHARITY`, `GIVER_CANCELLED`, or `EXPIRED`.
+    + `created_date_greater_than` (string, optional) - Filter rewards by their created date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `created_date_less_than` (string, optional) - Filter rewards by their created date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `delivery_date_greater_than` (string, optional) - Filter rewards by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `delivery_date_less_than` (string, optional) - Filter rewards by their delivery date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `redelivery_count_greater_than` (number, optional) - Filter rewards by their redelivery count.
+    + `redelivery_count_less_than` (number, optional) - Filter rewards by their redelivery count.
+    + `redeemed_date_greater_than` (number, optional) - Filter rewards by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
+    + `redeemed_date_less_than` (number, optional) - Filter rewards by their  redeemed date. Format `yyyy-MM-dd HH:mm:ss`.
+    + limit (number, optional) - The maximum number of rewards to return at once. Default 20.
+    + offset (number, optional) - The offset of the first reward in the total results. Default 0.
     + sort (string, optional) - The property you'd like to sort by. Options: `campaign_id`, `price_in_cents`, `recipient_name`, `recipient_email`, `delivery_status`, or status.
     + order (string, optional) - The order to sort by. Options: asc or desc. Default desc.
 
 + Response 200
     + Attributes
         + gifts
-            + uuid (string) - A unique identifier for the gift generated by Giftbit.
-            + `campaign_uuid` (string) - A unique identifier for campaign genereated by Giftbit.
-            + `delivery_status` (string) - The delivery status of the gift.
-                    UNSENT - The gift has been created but is not yet sent.
-                    DELIVERED - The gift has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
+            + uuid (string) - A unique identifier for the reward generated by Giftbit.
+            + `campaign_uuid` (string) - A unique identifier for order genereated by Giftbit.
+            + `delivery_status` (string) - The delivery status of the reward.
+                    UNSENT - The reward has been created but is not yet sent.
+                    DELIVERED - The reward has been sent, and no bounce or other problem notifications have been received. This is the successful delivery status.
                     LINKCREATED - Deprecated.
-                    UNDELIVERABLE - There has been a fatal issue with delivering the gift. This is often
-                        caused by attempting to send a gift to an email address that does not exist. We
+                    UNDELIVERABLE - There has been a fatal issue with delivering the reward. This is often
+                        caused by attempting to send a reward to an email address that does not exist. We
                         suggest double-checking the recipient address and changing or removing it for future
-                        campaigns.
+                        orders.
                     TEMPORARILY_UNDELIVERABLE - There has been a temporary email deliverability
                         issue to this recipient. This can be caused by issues like a full mailbox for their email
-                        address. While they may eventually get their gift, It is not guaranteed so we suggest
-                        following up with this recipient and resending their gift if necessary via the web
+                        address. While they may eventually get their reward, It is not guaranteed so we suggest
+                        following up with this recipient and resending their reward if necessary via the web
                         interface or the `/gifts` API endpoint.
                     UNSUBSCRIBED - Your recipient unsubscribed from the unsubscribe link in this or a
-                        previous gift offer email. You should remove them from all future campaigns as Giftbit
+                        previous reward offer email. You should remove them from all future orders as Giftbit
                         will return an error if you attempt to send to them again.
-                    COMPLAINT - Your recipient marked the gift message as spam. You should remove
-                        them from all future campaigns as Giftbit will return an error if you attempt to send to
+                    COMPLAINT - Your recipient marked the reward message as spam. You should remove
+                        them from all future orders as Giftbit will return an error if you attempt to send to
                         them again.
-            + status (string) - The status of the gift offer.
+            + status (string) - The status of the reward offer.
 
-                    SENT_AND_REDEEMABLE - The gift offer is created and is still redeemable.
-                    REDEEMED - The gift offer has been claimed.
+                    SENT_AND_REDEEMABLE - The reward offer is created and is still redeemable.
+                    REDEEMED - The reward offer has been claimed.
                     TO_CHARITY - Deprecated.
-                    GIVER_CANCELLED - The gift offer was canceled by the sender.
-                    EXPIRED - The gift offer is expired because its claim before passed before it was redeemed.
+                    GIVER_CANCELLED - The reward offer was canceled by the sender.
+                    EXPIRED - The reward offer is expired because its claim before passed before it was redeemed.
 
-            + `management_link_dashboard` (string) - A link to viewing the gift offer in your Giftbit account.
-            + `redelivery_count` (number) - The number of times the gift was resent to the recipient.
-            + `campaign_id` (string) - The id of campaign provided by the client.
-            + `price_in_cents` (number) - The value of the gift offer in cents.
-            + `marketplacegift_id` (string) - DEPRECATED.  Refer to brand_code. The id of the marketplace gift associated with the offer.
-            + `brand_code` (string) The brand of the gift offer.  Will not be set if multiple brands were included in the campaign and the recipient has not chosen their brand as part of the claim process.
-        + `number_of_results` (number) - The number of gifts returned from the request.
-        + limit (number) - The maximum number of gifts to be returned from the request.
-        + offset (number) - The offset into the gifts returned from the request.
-        + `total_count` (number) - The total number of gifts that matched request. These can be paged through using offset and limit.
+            + `management_link_dashboard` (string) - A link to viewing the reward offer in your Giftbit account.
+            + `redelivery_count` (number) - The number of times the reward was resent to the recipient.
+            + `campaign_id` (string) - The id of order provided by the client.
+            + `price_in_cents` (number) - The value of the reward offer in cents.
+            + `marketplacegift_id` (string) - DEPRECATED.  Refer to brand_code. The id of the marketplace reward associated with the offer.
+            + `brand_code` (string) The brand of the reward offer.  Will not be set if multiple brands were included in the order and the recipient has not chosen their brand as part of the claim process.
+        + `number_of_results` (number) - The number of rewards returned from the request.
+        + limit (number) - The maximum number of rewards to be returned from the request.
+        + offset (number) - The offset into the rewards returned from the request.
+        + `total_count` (number) - The total number of rewards that matched request. These can be paged through using offset and limit.
         + info
             + code (string) - Status code of request. [INFO_GIFTS]
     + Body
@@ -1219,7 +1213,7 @@ All date/time fields are in Pacific Standard Time.
             }
 
 
-### retrieve gift [GET /gifts/{uuid}]
+### retrieve reward [GET /gifts/{uuid}]
 + Request (application/json)
     + Headers
 
@@ -1227,7 +1221,7 @@ All date/time fields are in Pacific Standard Time.
             Accept-Encoding: identity
 
 + Parameters
-    + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
+    + uuid (required, string) - The uuid of the reward. Not to be mistaken for the uuid or id of the order.
 
 + Response 200
 
@@ -1259,7 +1253,7 @@ All date/time fields are in Pacific Standard Time.
 
 
 
-### resend gift [PUT /gifts/{uuid}]
+### resend reward [PUT /gifts/{uuid}]
 + Request (application/json)
     + Headers
 
@@ -1270,7 +1264,7 @@ All date/time fields are in Pacific Standard Time.
         + resend: true (boolean, required)
 
 + Parameters
-    + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
+    + uuid (required, string) - The uuid of the reward. Not to be mistaken for the uuid or id of the order.
 
 
 + Response 200
@@ -1301,7 +1295,7 @@ All date/time fields are in Pacific Standard Time.
                "status":200
             }
 
-### cancel gift [DELETE /gifts/{uuid}]
+### cancel reward [DELETE /gifts/{uuid}]
 + Request (application/json)
     + Headers
 
@@ -1309,7 +1303,7 @@ All date/time fields are in Pacific Standard Time.
             Accept-Encoding: identity
 
 + Parameters
-    + uuid (required, string) - The uuid of the gift. Not to be mistaken for the uuid or id of the campaign.
+    + uuid (required, string) - The uuid of the reward. Not to be mistaken for the uuid or id of the order.
 
 + Response 200
 
