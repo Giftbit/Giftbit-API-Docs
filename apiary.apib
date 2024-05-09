@@ -392,12 +392,12 @@ You can restrict the results list with any combination of price, currency, regio
 + lastname: Johnson (optional)
 
 
-## Order [/campaign]
+## Orders [/campaign]
 
 `POST /campaign` places an order for one or more email or link-based rewards. See the "create order" reference for detailed information on the request and response bodies.
 
 The use of templates in API calls to `/campaign` is optional; however, all required parameters must be specified in the API call or set in the template using the web interface for a successful response.
-
+der
 You can send a predefined reward brand or a choice between reward brands. Each reward has a customizable claim period. 
 
 If you do not specify the `delivery_type` the request will default to an email reward delivered by Giftbit, and at least one valid contact will be required.
