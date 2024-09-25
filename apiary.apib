@@ -164,6 +164,12 @@ If you choose to specify the `gift_template` in your API call, you should use th
 
 In cases where the `gift_template` is specified with Full Catalog selected, and the `price_in_cents` provided in the API call differs from the price set in the template, the choice step for the Full Catalog reward will automatically adjust to display brands that align with the overridden price.
 
+### Promotional rewards option
+
+By providing an `expiry` date in your API call to the `/campaign` or `/direct_links` endpoint, you can limit the period in which your recipients may claim their reward.
+
+This claim period can also be set on a `gift_template` in the web interface by marking a template as promotional and setting a number of days the reward is eligible to be claimed. Any rewards ordered using a `gift_template` flagged as promotional will automatically set the calculated `expiry` date.
+
 ### Retrieving reward brand information
 
 By using the `/brands` endpoint, you can access the list of reward brands available from Giftbit and detailed information about each reward brand, including the `brand_code` and an allowed price to include in your API calls to `/campaign`, `/direct_links`, or `/embedded`.
@@ -443,7 +449,9 @@ You can restrict the results list with any combination of price, currency, regio
 
 `POST /campaign` places an order for one or more emailed rewards by default. See the "create email order" reference for detailed information on the request and response bodies.
 
-The use of `gift_template` in API calls to `/campaign` is optional; however, all required parameters must be specified in the API call or set in the template using the web interface for a successful response. These template parameters include `subject`, `message`, `price_in_cents`, `brand_codes` (or `region` for Full Catalog rewards), and `expiry`.
+The use of `gift_template` in API calls to `/campaign` is optional; however, all required parameters must be specified in the API call or set in the template using the web interface for a successful response. These template parameters include `subject`, `message`, `price_in_cents`, and `brand_codes` (or `region` for Full Catalog rewards). 
+
+Include the optional parameter `expiry` to create a promotional reward with a limited claim period.
 
 If you do not specify the `delivery_type` the request will default to an email reward delivered by Giftbit, and at least one valid contact will be required.
 
@@ -464,7 +472,7 @@ If you do not specify the `delivery_type` the request will default to an email r
         + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 reward offer for the given brand(s)
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], optional) - custom list of one or more brand_code as given by the `/brands` endpoint to send in your order. Use this to limit choice to a few select brands. Not applicable to Full Catalog choice.
         + `region`: `Example: Canada` (string, optional) - + `region`: `Example: Canada` (string, optional) - Specifies the geographical region for the Full Catalog from which recipients can select a brand during the claim process.
-        + expiry: `Example: YYYY-MM-dd` (string, required) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + expiry: `Example: YYYY-MM-dd` (string, optional) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
         + id: `Example: abc123` (string, required) - An identifier for the order assigned by the client (you).  Must be unique across all your orders.  If an unexpected error occurs sending your order, you can safely send the same POST again with the same `id`.
 
 
@@ -696,13 +704,15 @@ If you do not specify the `delivery_type` the request will default to an email r
                }
             }
 
-## Shortlinks Orders [/links]
+## Shortlinks Orders [/shortlink]
 
 Shortlink rewards are an alternative to email rewards delivered by Giftbit. They still include the custom branding and messaging on an initial landing page. Once you retrieve the short URL for a shortlink reward, your system can distribute the shortlink to your recipient using an alternative email system, SMS, or another distribution method.  
 
 A request `POST /campaign` with `delivery_type: "SHORTLINK"` places an order for one or more shortlink rewards.
 
-The use of `gift_template` in API calls to `/campaign` is optional; however, all required parameters must be specified in the API call or set in the template using the web interface for a successful response. These template parameters include `message`, `price_in_cents`, `brand_codes` (or `region` for Full Catalog rewards), and `expiry`.
+The use of `gift_template` in API calls to `/campaign` is optional; however, all required parameters must be specified in the API call or set in the template using the web interface for a successful response. These template parameters include `message`, `price_in_cents`, and `brand_codes` (or `region` for Full Catalog rewards).
+
+Include the optional parameter `expiry` to create a promotional reward with a limited claim period.
 
 `GET /links/{id}` retrieves the URL for the link-based reward following the order creation process. 
 The URL will be ready after a short delay following the successful response from `/campaign`. 
@@ -725,7 +735,7 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
         + `link_count` (number, required) - Amount of reward links to generate (must be a positive integer)
         + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 reward offer for the given brand(s)
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], required) - a list of one or more brand_code as given by the `/brands` endpoint to send in your order.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process.
-        + expiry: `Example: YYYY-MM-dd` (string, required) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + expiry: `Example: YYYY-MM-dd` (string, optional) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
         + id: `Example: abc123` (string, required) - An identifier for the order assigned by the client (you).  Must be unique across all your orders.  If an unexpected error occurs sending your order, you can safely send the same POST again with the same `id`.
 
     + Body
@@ -868,7 +878,9 @@ A direct link reward can be configured to be either a full catalog of options in
 
 A `POST /direct_links` request is used to place an order for direct link rewards.
 
-Required parameters for the API include `price_in_cents`, `brand_codes` (or `region` for Full Catalog rewards), and `expiry`.
+Required parameters for the API include `price_in_cents` and `brand_codes` (or `region` for Full Catalog rewards).
+
+Include the optional parameter `expiry` to create a promotional reward with a limited claim period.
 
 Each API request should also include an `id` set by you.
 
@@ -886,7 +898,7 @@ Optionally, you can set a `link_count` in your request to generate more than one
     + Attributes
         + id: `Example: abc123` (string, required) - An identifier for the order assigned by the client (you).  Must be unique across all your orders.  If an unexpected error occurs sending your order, you can safely send the same POST again with the same `id`.
         + `price_in_cents`: `2500` (number, required) - the value of the offer you are sending, in cents.  A value of 2500 would send a $25 reward offer for the given brand(s).
-        + expiry: `Example: YYYY-MM-dd` (string, required) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
+        + expiry: `Example: YYYY-MM-dd` (string, optional) - The order's claim before date. After the end of this date (in Pacific Standard Time), recipients in this order will not be able to redeem their reward offers and the appropriate portion of the credits for any unclaimed reward offers will be returned to your account.  It may not exceed one year from the time of creation.
         + `brand_codes`: `Example:["itunesus","amazonus"]` (array[string], optional) - a list of one or more brand_codes as given by the `/brands` endpoint to send in your order.  To give your recipients a choice, simply provide more than one brand_code; recipients will then get to choose the brand they prefer as part of the claim process. Brand codes must be from the same region.
         + `region` : `Example: USA` (string, optional) - 
         + `link_count`: `10` (number, optional) - Amount of reward links to generate (must be a positive integer)
