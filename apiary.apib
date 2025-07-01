@@ -508,7 +508,8 @@ If you do not specify the `delivery_type` the request will default to an email r
                     `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
                     `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
                     `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
-
+            + name (string) - human readable status name
+            + message (string) - request context specific message
         + campaign
             + message (string) - The message for the order.
             + subject (string) - The subject for the order.
@@ -531,8 +532,8 @@ If you do not specify the `delivery_type` the request will default to an email r
             + expiry (string) - The order's claim before date as described in creation parameters.
             + `contact_success_count` (number) - The number of contacts added successfully.
             + `contact_failure_count` (number) - The number of contacts that could not be added to the order. This occurs for instance when a contact email has been flagged as undeliverable.
-        + fees - Information about the cost of the order and any associated fees at creation or completion time.
-        + id (string) - The client provided id for the order.
+            + fees - Information about the cost of the order and any associated fees at creation or completion time.
+            + id (string) - The client provided id for the order.
     + Body
 
             {
@@ -572,37 +573,37 @@ If you do not specify the `delivery_type` the request will default to an email r
                   "delivery_type":"GIFTBIT_EMAIL",
                   "expiry":"2017-05-01",
                   "contacts_success_count":2,
-                  "contacts_failure_count":0,
+                  "contacts_failure_count":0
                   "fees":{
-                     "cost_entries":[
-                        {
-                           "percentage":0,
-                           "fee_type":"PREFUND_GIFT_COST",
-                           "amount_in_cents":2000,
-                           "currency":"USD",
-                           "tax_type":"NOTAX",
-                           "tax_in_cents":0,
-                           "number_of_gifts":2,
-                           "fee_per_gift_in_cents":1000
-                        },
-                        {
-                           "percentage":0.000,
-                           "fee_type":"BREAKAGE_PERCENTAGE",
-                           "amount_in_cents":0,
-                           "currency":"USD",
-                           "tax_type":"NOTAX",
-                           "tax_in_cents":0,
-                           "number_of_gifts":2,
-                           "fee_per_gift_in_cents":0
-                        }
-                     ],
-                     "subtotal_in_cents":2000,
-                     "tax_in_cents":0,
-                     "tax_type":"NOTAX",
-                     "total_in_cents":2000
-                  },
-                  "id":"clientProvidedGiftId_abc123"
-               }
+                    "cost_entries":[
+                      {
+                        "percentage":0,
+                        "fee_type":"PREFUND_GIFT_COST",
+                        "amount_in_cents":2000,
+                        "currency":"USD",
+                        "tax_type":"NOTAX",
+                        "tax_in_cents":0,
+                        "number_of_gifts":2,
+                        "fee_per_gift_in_cents":1000
+                      },
+                      {
+                        "percentage":0.000,
+                        "fee_type":"BREAKAGE_PERCENTAGE",
+                        "amount_in_cents":0,
+                        "currency":"USD",
+                        "tax_type":"NOTAX",
+                        "tax_in_cents":0,
+                        "number_of_gifts":2,
+                        "fee_per_gift_in_cents":0
+                      }
+                    ],
+                    "subtotal_in_cents":2000,
+                    "tax_in_cents":0,
+                    "tax_type":"NOTAX",
+                    "total_in_cents":2000
+                 },
+                 "id":"clientProvidedGiftId_abc123"
+              }
             }
 
 + Response 422
@@ -756,10 +757,37 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
 
 + Response 200
     + Attributes
-        + `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
-        + `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
-        + `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
-        + fees - Depending on your giftbit account some of the fields returned in the fee section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
+        + info
+            + code (string) - Status code for request. Possibilities:
+                    `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
+                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
+                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
+            + name (string) - human readable status name
+            + message (string) - request context specific message
+        + campaign
+            + message (string) - The message for the order.
+            + subject (string) - The subject for the order.
+            + contacts (object) - A list of contacts the order is being sent to.
+            + price_in_cents (number) - The amount of the reward offer to each recipient.
+            + brand_codes (array[string]) - Custom list of reward brand(s) sent.
+            + region (string) - Full Catalog region name. Possibilities: USA, Canada
+            + status (string) - The status of the order. Possibilities:
+                API_CREATING - The order is in the process of being created.
+                AWAITING_FUNDS - The order has not yet been delivered to the recipient(s)
+                        because of insufficient funds in your Giftbit account. You do NOT need to
+                        resend the order as soon as you add funds to your account or your pending
+                        funds clear, the order will be automatically delivered to your recipients.
+                CAMPAIGN_CREATED - The order has been created. Note the reward emails may still be in the process of being delivered at this point.
+            + uuid (string) - A unique identifier for the order generated by Giftbit. This id can be used to retrieve the order.
+            + `delivery_type` (string) - The delivery type of the order. Possibilities:
+
+                    SHORTLINK
+
+            + expiry (string) - The order's claim before date as described in creation parameters.
+            + fees - Information about the cost of the order and any associated fees at creation or completion time.
+            + id (string) - The client provided id for the order.
+            + link_count (number) - Amount of reward links generated.
+            
     + Body
 
 
@@ -773,7 +801,7 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
               "campaign": {
                 "message": "Thanks for being such an awesome customer!",
                 "subject": "Please enjoy this reward!",
-                "contacts": null,
+                "contacts": [],
                 "status": "API_CREATING",
                 "uuid": "49e90cb2616b4893b55871a1786f84b0",
                 "suppress_default_greeting": false,
@@ -813,7 +841,6 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
                   "total_in_cents": 2500
                 },
                 "id": "clientProvidedGiftId_abc123",
-                "gift_template": "XDKHE",
                 "link_count": 1
                 }
               }
@@ -832,8 +859,13 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
 
 + Response 200
     + Attributes
-        + `INFO_LINKS` - Your reward offers are ready and the links are returned.
-        + `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your reward offers. Try again in 5 minutes
+        + info
+            + code (string) - Status code for request. Possibilities:
+                    `INFO_LINKS` - Your reward offers are ready and the links are returned.
+                    `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your reward offers. Try again in 5 minutes
+            + name (string) - human readable status name
+            + message (string) - request context specific message
+        + shortlinks (array) - A list of shortlink objects
 
     + Body
 
@@ -848,8 +880,7 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
 
 + Response 200
     + Body
-
-
+    
             {
               "info": {
                 "code": "INFO_LINKS",
@@ -916,10 +947,37 @@ Optionally, you can set a `link_count` in your request to generate more than one
 
 + Response 200
     + Attributes
-        + `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
-        + `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
-        + `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
-        + fees - Depending on your giftbit account some of the fields returned in the fee section may not apply to your account as some of these status' are deprecated. If you have any questions regarding the fees section please contact Giftbit.
+        + info
+            + code (string) - Status code for request. Possibilities:
+                    `INFO_CAMPAIGN_CREATED` - Order creation has begun successfully
+                    `INFO_CAMPAIGN_CREATED_FUNDS_REQUIRED` - Order creation request was successfully received by Giftbit but there are insufficient funds in your Giftbit account to cover the cost of the order. Note you do not need to resend the order. It will automatically be sent when there are enough funds in your account.
+                    `INFO_CAMPAIGN_CREATED_FUNDS_PENDING` - The order creation request was successfully received by Giftbit but pending funds (such as a cheque or wire transfer that you sent) have not yet cleared. Note you do NOT need to resend the order as soon as your pending funds clear and become available, the order will be automatically delivered to your recipients.
+            + name (string) - human readable status name
+            + message (string) - request context specific message
+        + direct_links (array) - A list of direct link URLs
+        + campaign
+            + message (string) - The message for the order.
+            + subject (string) - The subject for the order.
+            + contacts (object) - A list of contacts the order is being sent to.
+            + price_in_cents (number) - The amount of the reward offer to each recipient.
+            + brand_codes (array[string]) - Custom list of reward brand(s) sent.
+            + region (string) - Full Catalog region name. Possibilities: USA, Canada
+            + status (string) - The status of the order. Possibilities:
+                API_CREATING - The order is in the process of being created.
+                AWAITING_FUNDS - The order has not yet been delivered to the recipient(s)
+                        because of insufficient funds in your Giftbit account. You do NOT need to
+                        resend the order as soon as you add funds to your account or your pending
+                        funds clear, the order will be automatically delivered to your recipients.
+                CAMPAIGN_CREATED - The order has been created. Note the reward emails may still be in the process of being delivered at this point.
+            + uuid (string) - A unique identifier for the order generated by Giftbit. This id can be used to retrieve the order.
+            + `delivery_type` (string) - The delivery type of the order. Possibilities:
+
+                    DIRECT_LINK
+
+            + expiry (string) - The order's claim before date as described in creation parameters.
+            + fees - Information about the cost of the order and any associated fees at creation or completion time.
+            + id (string) - The client provided id for the order.
+
     + Body
 
             {
@@ -998,8 +1056,15 @@ Optionally, you can set a `link_count` in your request to generate more than one
 
 + Response 200
     + Attributes
-        + `INFO_LINKS` - Your reward offers are ready and the links are returned.
 
+        + info
+            + code (string) - Status code for request. Possibilities:
+                    `INFO_LINKS` - Your reward offers are ready and the links are returned.
+                    `INFO_LINKS_GENERATION_IN_PROGRESS` - Giftbit is still preparing your reward offers. Try again in 5 minutes
+            + name (string) - human readable status name
+            + message (string) - request context specific message
+        + direct_links (array) - A list of direct link objects
+        
     + Body
 
 
