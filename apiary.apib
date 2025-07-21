@@ -511,6 +511,7 @@ If you do not specify the `delivery_type` the request will default to an email r
             + name (string) - human readable status name
             + message (string) - request context specific message
         + campaign
+            + company_name (string) - The sender's business name
             + message (string) - The message for the order.
             + subject (string) - The subject for the order.
             + contacts (object) - A list of contacts the order is being sent to.
@@ -544,6 +545,7 @@ If you do not specify the `delivery_type` the request will default to an email r
                },
                "status":200,
                "campaign":{
+                  "company_name":"Company Name",
                   "message":"Thanks for being such an awesome customer!",
                   "subject":"Please enjoy this reward!",
                   "contacts":[
@@ -650,6 +652,7 @@ If you do not specify the `delivery_type` the request will default to an email r
                   "message":"A campaign or list of campaigns has been retrieved."
                },
                "campaign":{
+                  "company_name":"Company Name",
                   "message":"Thanks for being such an awesome customer!",
                   "subject":"Please enjoy this reward!",
                   "contacts":[
@@ -765,6 +768,7 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
             + name (string) - human readable status name
             + message (string) - request context specific message
         + campaign
+            + company_name (string) - The sender's business name
             + message (string) - The message for the order.
             + subject (string) - The subject for the order.
             + contacts (object) - A list of contacts the order is being sent to.
@@ -799,6 +803,7 @@ Giftbit will not attempt to deliver shortlink rewards by email when you associat
               },
               "status": 200,
               "campaign": {
+                "company_name":"Company Name",
                 "message": "Thanks for being such an awesome customer!",
                 "subject": "Please enjoy this reward!",
                 "contacts": [],
@@ -956,6 +961,7 @@ Optionally, you can set a `link_count` in your request to generate more than one
             + message (string) - request context specific message
         + direct_links (array) - A list of direct link URLs
         + campaign
+            + company_name (string) - The sender's business name
             + message (string) - The message for the order.
             + subject (string) - The subject for the order.
             + contacts (object) - A list of contacts the order is being sent to.
@@ -991,6 +997,7 @@ Optionally, you can set a `link_count` in your request to generate more than one
                 "https://reward.giftbit.com/getReward/dl-59ec25692ca940358fcd51e91e3d1fdb"
               ],
               "campaign": {
+                "company_name":"Company Name",
                 "message": "Here is your reward!",
                 "subject": null,
                 "contacts": [],
