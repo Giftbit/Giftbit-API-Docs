@@ -1,21 +1,25 @@
 ---
 title: "HTTP success and error codes"
-description: "Always check the HTTP response code to correctly handle success and error conditions from the Giftbit API."
+description: "Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions."
 ---
 
-Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.
-
 <Warning>
-  **Only** an HTTP status of `200` means the request was successful. For non-`200` responses, the predictable response body described below gives details on why the request failed. We recommend logging any failure response body as best practice — the Giftbit support team needs the full response body to assist with troubleshooting.
+  **Only** an HTTP status of `200` means the request was successful.
 </Warning>
+
+For non-200 responses, the predictable response body (described below) will give you details on why the request failed. 
+
+We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to assist with troubleshooting. 
+
+This section gives details on the response codes and recommended actions.
 
 ## Success responses
 
-**`200`** — Success. See the [API reference](/api-reference/ping/ping) for the success response format of each endpoint.
+**200** — Success. See the [API reference](/api-reference) for the success response format of each endpoint.
 
 ## Error responses
 
-All non-`200` responses should be treated as an error and either retried, or the request fixed and then retried. To assist with programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
+All non-`200` responses should be treated as an error and either retried, or the request fixed and then retried. This section details the different potential non-`200` responses. To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
 
 ```json
 {
@@ -50,7 +54,7 @@ All non-`200` responses should be treated as an error and either retried, or the
 
 <AccordionGroup>
   <Accordion title="400 — Malformed request">
-    Error due to a malformed request body, such as broken JSON or a missing required element. Requires fixing up the request body.
+      Error due to a malformed request body such as broken JSON or missing required element. Requires fixing up the request body.
   </Accordion>
   <Accordion title="401 / 403 — Authentication or authorization failure">
     Generally related to a missing or invalid API key. Ensure you are [authenticating](/guides/authentication) correctly.
@@ -64,9 +68,9 @@ All non-`200` responses should be treated as an error and either retried, or the
   <Accordion title="429 — Too many requests">
     The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. If you receive a `429` response, your code should automatically retry the request with a backoff delay.
 
-    You can simulate this condition in the Testbed environment — without actually producing a high request rate — by passing a `SIMULATE-RATELIMIT` header with a value of `true` on any request. If you feel you are being frequently rate limited during valid usage, please contact support.
+    You can simulate rate limiting in the Testbed environment — without actually producing a high request rate — by passing a `SIMULATE-RATELIMIT` header with a value of `true` on any request. If you feel you are being frequently rate limited during valid usage, please contact support.
   </Accordion>
-  <Accordion title="5xx — Unexpected Giftbit error">
+  <Accordion title="5xx — Unexpected error">
     An unexpected error on the Giftbit side. Retry the request, and if failures persist, contact support. Note that the response body format in the `5xx` case may not match the common error response format described above.
   </Accordion>
 </AccordionGroup>
