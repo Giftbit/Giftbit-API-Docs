@@ -1,0 +1,40 @@
+---
+title: "API reference overview"
+description: "A definitive list of Giftbit API endpoints, grouped by resource."
+---
+
+The [API reference](/api-reference/ping/ping) provides interactive documentation for every Giftbit endpoint, generated from the OpenAPI specification. Each endpoint page includes the request parameters, request body, and example responses.
+
+All requests require [authentication](/guides/authentication) and should handle the [HTTP success and error codes](/guides/errors) described in the guides.
+
+## Endpoint groups
+
+<CardGroup cols={2}>
+  <Card title="Ping" icon="signal" href="/api-reference/ping/ping">
+    Test your authentication and check API health.
+  </Card>
+  <Card title="Brands" icon="tags" href="/api-reference/brands/list-brands">
+    List reward brands and retrieve extended brand information.
+  </Card>
+  <Card title="Regions" icon="earth-americas" href="/api-reference/regions/list-regions">
+    List the regions used to filter brands and request Full Catalog rewards.
+  </Card>
+  <Card title="Email orders" icon="envelope" href="/api-reference/email-orders/create-email-order">
+    Order rewards delivered by Giftbit email.
+  </Card>
+  <Card title="Shortlink orders" icon="link" href="/api-reference/shortlink-orders/create-shortlink-order">
+    Order branded shortlink rewards with a landing page.
+  </Card>
+  <Card title="Direct link orders" icon="arrow-up-right-from-square" href="/api-reference/direct-link-orders/create-direct-link-order">
+    Order minimally branded direct link rewards.
+  </Card>
+  <Card title="Embedded rewards" icon="mobile-screen" href="/api-reference/embedded-rewards/create-embedded-reward">
+    Order in-app rewards for immediate delivery.
+  </Card>
+  <Card title="Funds" icon="wallet" href="/api-reference/funds/retrieve-funding-information">
+    Retrieve your balance and top up by credit card.
+  </Card>
+  <Card title="Rewards" icon="gift" href="/api-reference/rewards/list-rewards">
+    List, retrieve, resend, and cancel individual rewards.
+  </Card>
+</CardGroup>

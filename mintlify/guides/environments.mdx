@@ -1,0 +1,36 @@
+---
+title: "Environments and URLs"
+description: "Giftbit provides separate Testbed and Production environments, each with its own API root and account settings."
+---
+
+Giftbit provides two environments. Build and test against the Testbed environment, then switch to Production when your integration is ready to launch.
+
+## Testbed API root
+
+```
+https://api-testbed.giftbit.com/papi/v1
+```
+
+[Sign up for the Testbed](https://testbedapp.giftbit.com/register/index) and get building right away.
+
+## Production API root
+
+```
+https://api.giftbit.com/papi/v1
+```
+
+See [Going live](/guides/going-live) for production considerations and instructions on getting production API access.
+
+## Environment differences
+
+Here are the key differences between Giftbit's Testbed and Production environments:
+
+<Info>
+  Reward emails and other notifications sent through Testbed are sent to the email address you provided for your username, **not** to the specified recipient email(s).
+</Info>
+
+- Testbed rewards include a header notification identifying them as test emails and pages.
+- A limited number of reward brands are available in Testbed. The complete list of production reward brands is at [giftbit.com/brands](https://www.giftbit.com/brands/).
+- You have a different API token and separate account settings for Testbed and Production.
+- To encourage continuous integration testing against the Testbed API, you are provided with a large virtual account balance in Testbed.
+- Your Testbed account comes with test credit cards to simulate USD and CAD credit card payments to Giftbit. These card numbers are for testing purposes only and do not use real money.

@@ -1,0 +1,82 @@
+---
+title: "HTTP success and error codes"
+description: "Always check the HTTP response code to correctly handle success and error conditions from the Giftbit API."
+---
+
+Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions.
+
+<Warning>
+  **Only** an HTTP status of `200` means the request was successful. For non-`200` responses, the predictable response body described below gives details on why the request failed. We recommend logging any failure response body as best practice — the Giftbit support team needs the full response body to assist with troubleshooting.
+</Warning>
+
+## Success responses
+
+**`200`** — Success. See the [API reference](/api-reference/ping/ping) for the success response format of each endpoint.
+
+## Error responses
+
+All non-`200` responses should be treated as an error and either retried, or the request fixed and then retried. To assist with programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
+
+```json
+{
+  "error": {
+    "code": "<value>",
+    "name": "<value>",
+    "message": "<value>"
+  },
+  "status": <value>
+}
+```
+
+- **`code`** — an enum-style error code that represents the problem and will not change.
+- **`name`** — a human-readable error name.
+- **`message`** — request-specific information about the error.
+- **`status`** — an integer that matches the HTTP status code returned.
+
+### Example
+
+```json
+{
+  "error": {
+    "code": "ERROR_CAMPAIGN_INVALID_BRAND",
+    "name": "Invalid Brand or Brand/Price combination",
+    "message": "brand_code: itunesus - price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
+  },
+  "status": 422
+}
+```
+
+## Error response codes
+
+<AccordionGroup>
+  <Accordion title="400 — Malformed request">
+    Error due to a malformed request body, such as broken JSON or a missing required element. Requires fixing up the request body.
+  </Accordion>
+  <Accordion title="401 / 403 — Authentication or authorization failure">
+    Generally related to a missing or invalid API key. Ensure you are [authenticating](/guides/authentication) correctly.
+  </Accordion>
+  <Accordion title="402 — Credit card charge failure">
+    The request was correct, but the card was not charged.
+  </Accordion>
+  <Accordion title="422 — Invalid parameters">
+    The request is formatted correctly, but one or more parameters in the body or URL are not valid. An example would be trying to create an order with a reward value outside of the allowed range for that brand. Ensure the request parameters are valid.
+  </Accordion>
+  <Accordion title="429 — Too many requests">
+    The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. If you receive a `429` response, your code should automatically retry the request with a backoff delay.
+
+    You can simulate this condition in the Testbed environment — without actually producing a high request rate — by passing a `SIMULATE-RATELIMIT` header with a value of `true` on any request. If you feel you are being frequently rate limited during valid usage, please contact support.
+  </Accordion>
+  <Accordion title="5xx — Unexpected Giftbit error">
+    An unexpected error on the Giftbit side. Retry the request, and if failures persist, contact support. Note that the response body format in the `5xx` case may not match the common error response format described above.
+  </Accordion>
+</AccordionGroup>
+
+## Handling timeouts
+
+If you receive a network timeout or other unexpected response (such as a `5xx`) when creating an order or an embedded reward, resend the `POST` request to `/campaign`, `/direct_links`, or `/embedded` using the same supplied `id`.
+
+<Info>
+  The supplied `id` is idempotent — Giftbit will only ever create one order with a given supplied `id`. The supplied `id` must always be unique across different requests.
+</Info>
+
+We highly recommend using exponential backoff with a limited number of tries for timeouts and unexpected responses (such as a `5xx`), with clear logging or alerts to allow for investigation.
