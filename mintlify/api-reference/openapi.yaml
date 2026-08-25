@@ -1,0 +1,1432 @@
+openapi: 3.1.0
+info:
+  title: Giftbit API
+  version: v1
+  description: |
+    Giftbit's REST API lets you automatically order rewards and send them to your
+    recipients. Delivery can be handled either by links that integrate into another
+    system's workflow, or by emails sent through the Giftbit system.
+
+    Authenticate every request with a bearer token in the `Authorization` header.
+    Only an HTTP `200` means success; all non-`200` responses share a common error body.
+  contact:
+    name: Giftbit Support
+    email: testbed@giftbit.com
+    url: https://www.giftbit.com/api-documentation
+servers:
+  - url: https://api-testbed.giftbit.com/papi/v1
+    description: Testbed
+  - url: https://api.giftbit.com/papi/v1
+    description: Production
+security:
+  - bearerAuth: []
+tags:
+  - name: Ping
+    description: Test your authentication and check the health of the Giftbit API.
+  - name: Brands
+    description: List reward brands and retrieve extended information about a single brand.
+  - name: Regions
+    description: List the regions used to filter brands and request Full Catalog rewards.
+  - name: Email Orders
+    description: Order one or more rewards delivered to recipients by Giftbit email.
+  - name: Shortlink Orders
+    description: Order branded shortlink rewards that include a customized landing page.
+  - name: Direct Link Orders
+    description: Order minimally branded direct link rewards returned immediately in the response.
+  - name: Embedded Rewards
+    description: Order a single in-app reward for immediate delivery in your app or website.
+  - name: Funds
+    description: Retrieve your account balance and top it up with a credit card payment.
+  - name: Rewards
+    description: List, retrieve, resend, and cancel individual rewards.
+paths:
+  /ping:
+    get:
+      tags: [Ping]
+      summary: Ping
+      operationId: ping
+      description: Provides a way to test your authentication and check the health of the Giftbit API.
+      responses:
+        "200":
+          description: Credentials are valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: The username associated with the credentials provided.
+                  displayname:
+                    type: string
+                    description: The display name associated with the credentials provided.
+                  info:
+                    $ref: "#/components/schemas/Info"
+              example:
+                username: example_merchant@giftbit.com
+                displayname: Example Merchant
+                info:
+                  code: INFO_CREDENTIALS
+                  name: Credentials are valid
+                  message: The credentials used are valid and login attempt was successful.
+        "401":
+          description: Access token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                error:
+                  code: ERROR_UNAUTHORIZED
+                  name: Unauthorized
+                  message: Access Token missing or invalid
+
+  /brands:
+    get:
+      tags: [Brands]
+      summary: List brands
+      operationId: list-brands
+      description: |
+        Returns a list of reward brands available from Giftbit, including the
+        `brand_code` and an allowed price to include in your calls to `/campaign`,
+        `/direct_links`, or `/embedded`.
+
+        Some brands only allow certain fixed values, while others have an allowed range.
+        You can restrict the results list with any combination of price, currency, region, or search terms.
+
+        The results can be paged.
+      parameters:
+        - name: region
+          in: query
+          required: false
+          description: Limits results to brands available in the provided region `id`, as returned from `/regions`.
+          schema:
+            type: integer
+        - name: max_price_in_cents
+          in: query
+          required: false
+          description: Limits results to brands that have an available reward option less than or equal to this value.
+          schema:
+            type: integer
+        - name: min_price_in_cents
+          in: query
+          required: false
+          description: Limits results to brands that have an available reward option greater than or equal to this value.
+          schema:
+            type: integer
+        - name: currencyisocode
+          in: query
+          required: false
+          description: Limits results to brands that have an available reward matching the provided currency.
+          schema:
+            type: string
+            enum: [CAD, USD, AUD]
+        - name: search
+          in: query
+          required: false
+          description: Limits results to brands containing the search term in their name, description, or other fields.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Limits the number of results. Default 20.
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          description: Offsets the results. Used for paging. Default 0.
+          schema:
+            type: integer
+            default: 0
+        - name: embeddable
+          in: query
+          required: false
+          description: If `true`, brands that cannot be used for in-app delivery via `/embedded` are omitted.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: A list of brands has been retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brands:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Brand"
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  number_of_results:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total_count:
+                    type: integer
+              example:
+                brands:
+                  - brand_code: AMZNCOM
+                    name: Amazon.com
+                    image_url: https://uploadedimages.giftbit.com/550/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg
+                    disclaimer: >-
+                      Amazon.com Gift Cards ("GCs") sold by Giftbit Inc., an authorized and
+                      independent reseller of Amazon.com Gift Cards.
+                  - brand_code: WHOLEFOODS
+                    name: Whole Foods Market
+                    image_url: https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png
+                number_of_results: 2
+                info:
+                  code: INFO_BRANDS_RETRIEVED
+                  name: Brand(s) Retrieved
+                  message: A list of brands or single brand has been retrieved
+                limit: 20
+                offset: 0
+                total_count: 2
+
+  /brands/{brand_code}:
+    get:
+      tags: [Brands]
+      summary: Retrieve brand
+      operationId: retrieve-brand
+      description: Retrieves extended information about the specified brand.
+      parameters:
+        - name: brand_code
+          in: path
+          required: true
+          description: Retrieve a single brand by `brand_code`.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The brand has been retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brand:
+                    $ref: "#/components/schemas/BrandDetail"
+                  info:
+                    $ref: "#/components/schemas/Info"
+              example:
+                brand:
+                  brand_code: WHOLEFOODS
+                  name: Whole Foods Market
+                  image_url: https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png
+                  regions: [2]
+                  fund_currencyisocode: USD
+                  inapp_available: true
+                  variable_price: false
+                  allowed_prices_in_cents: [1000, 2500, 5000, 10000]
+                info:
+                  code: INFO_BRANDS_RETRIEVED
+                  name: Brand(s) Retrieved
+                  message: A list of brands or single brand has been retrieved
+        "422":
+          description: No brand found matching that code.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_BRANDS_NO_SUCH_BRAND
+                  name: No brand found
+                  message: No brand found matching that code
+                status: 422
+
+  /regions:
+    get:
+      tags: [Regions]
+      summary: List regions
+      operationId: list-regions
+      description: |
+        Returns a list of the regions that can be used to filter results from `/brands`.
+
+        Regions are also used to request a Full Catalog reward from `/campaign` or `/direct_links`.
+      responses:
+        "200":
+          description: A list of regions has been retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  regions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Region"
+                  info:
+                    $ref: "#/components/schemas/Info"
+              example:
+                regions:
+                  - id: 1
+                    name: Canada
+                    image_url: https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/CA@3x.png
+                  - id: 2
+                    name: USA
+                    image_url: https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/US@3x.png
+                  - id: 3
+                    name: Global
+                    image_url: https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/GLBL@3x.png
+                  - id: 4
+                    name: Australia
+                    image_url: https://s3-us-west-2.amazonaws.com/staticimageskiind/flags/AU@3x.png
+                info:
+                  code: INFO_RETRIEVED_REGIONS
+                  name: Regions Retrieved
+                  message: A list of regions has been retrieved.
+
+  /campaign:
+    post:
+      tags: [Email Orders]
+      summary: Create standard order
+      operationId: create-standard-order
+      description: |
+        Places a standard order for one or more rewards.
+
+        ### Email Rewards
+        By default, the order is delivered by Giftbit email and at least one
+        valid `contacts` entry is required.
+
+        ### Shortlnk Rewards
+        You can optionally set `delivery_type: SHORTLINK` to create shortlink rewards
+        instead. Shortlink rewards use the same endpoint, return the same order object,
+        but generate claim links to distribute yourself. When using
+        `delivery_type: SHORTLINK` include a `link_count` to specify the number of rewards to create.
+
+        The use of `gift_template` is optional, but all required parameters must be
+        specified in the API call or set in the template.
+
+        Include the optional `expiry` parameter to create a promotional reward with a limited claim period.
+
+        If you do not specify `delivery_type`, the request defaults to an email reward delivered by Giftbit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignCreateRequest"
+            examples:
+              email:
+                summary: Email order
+                value:
+                  gift_template: XDKHE
+                  contacts:
+                    - firstname: Perry
+                      lastname: Johnson
+                      email: pjohnson@giftbit.com
+                    - firstname: Rita
+                      lastname: Robson
+                      email: rrobson@giftbit.com
+                  price_in_cents: 5000
+                  brand_codes: [itunesus, amazonus]
+                  expiry: "2018-11-01"
+                  id: clientProvidedGiftId_abc123
+              shortlink:
+                summary: Shortlink order
+                value:
+                  gift_template: XDKHE
+                  delivery_type: SHORTLINK
+                  link_count: 1
+                  price_in_cents: 2500
+                  brand_codes: [itunesus, amazonus]
+                  expiry: "2023-07-07"
+                  id: clientProvidedGiftId_abc123
+      responses:
+        "200":
+          description: Order creation has begun.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+                  campaign:
+                    $ref: "#/components/schemas/Campaign"
+              example:
+                info:
+                  code: INFO_CAMPAIGN_CREATED
+                  name: Campaign Created
+                  message: Campaign creation has begun.
+                status: 200
+                campaign:
+                  company_name: Company Name
+                  message: Thanks for being such an awesome customer!
+                  subject: Please enjoy this reward!
+                  contacts:
+                    - email: pjhonson@giftbit.com
+                      firstname: Perry
+                      added_successfully: true
+                      lastname: Johnson
+                      message: Contact ready
+                  price_in_cents: 5000
+                  brand_codes: [itunesus, amazonus]
+                  status: API_CREATING
+                  uuid: 9a405b513c11413aaac593a0c2e1a15d
+                  suppress_default_greeting: false
+                  delivery_type: GIFTBIT_EMAIL
+                  expiry: "2017-05-01"
+                  contacts_success_count: 2
+                  contacts_failure_count: 0
+                  gift_template: XDKHE
+                  id: clientProvidedGiftId_abc123
+        "422":
+          description: One or more parameters are not valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_CAMPAIGN_INVALID_BRAND
+                  name: Invalid Brand or Brand/Price combination
+                  message: "brand_code: itunesus - price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
+                status: 422
+
+  /campaign/{id}:
+    get:
+      tags: [Email Orders]
+      summary: Retrieve order by ID
+      operationId: retrieve-order-by-id
+      description: Retrieves the status and information about the specified order.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The order id assigned by the client, or the `uuid` assigned by Giftbit.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The order has been retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  campaign:
+                    $ref: "#/components/schemas/Campaign"
+              example:
+                info:
+                  code: INFO_CAMPAIGN_RETRIEVED
+                  name: Campaign Retrieved
+                  message: A campaign or list of campaigns has been retrieved.
+                campaign:
+                  company_name: Company Name
+                  message: Thanks for being such an awesome customer!
+                  subject: Please enjoy this reward!
+                  price_in_cents: 5000
+                  brand_codes: [itunesus]
+                  status: CAMPAIGN_CREATED
+                  uuid: ee0d3f657fb640c987033e63a82e2279
+                  suppress_default_greeting: false
+                  delivery_type: GIFTBIT_EMAIL
+                  expiry: "2017-05-01"
+                  gift_template: XDKHE
+                  id: clientProvidedGiftId_abc1232
+
+  /links/{id}:
+    get:
+      tags: [Shortlink Orders]
+      summary: Retrieve link URLs
+      operationId: retrieve-shortlink-urls
+      description: |
+        Retrieves the URLs for a link-based order (shortlink or direct link). The URLs
+        are ready after a short delay following the successful response from `/campaign`
+        or `/direct_links`. We recommend polling every 5 minutes until the URLs are ready.
+
+        The response contains a `shortlinks` array for shortlink orders and a
+        `directlinks` array for direct link orders.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The client provided id of the order.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Links retrieved, or generation still in progress.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  shortlinks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: integer
+                        shortlink:
+                          type: string
+                  directlinks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: integer
+                        link:
+                          type: string
+                  number_of_results:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total_count:
+                    type: integer
+              examples:
+                inProgress:
+                  summary: Generation in progress
+                  value:
+                    info:
+                      code: INFO_LINKS_GENERATION_IN_PROGRESS
+                      name: Links have not yet completed generating; request again in 5 minutes
+                      message: Link generation is not complete. Large orders will take some time to process and may be held for manual review; use the /campaign endpoint for more detail on your order
+                shortlinksReady:
+                  summary: Shortlinks ready
+                  value:
+                    info:
+                      code: INFO_LINKS
+                      name: Link information retrieved
+                      message: Returned links for requested Campaign
+                    shortlinks:
+                      - number: 1
+                        shortlink: http://gtbt.co/q5WmFXVjCAh
+                    number_of_results: 1
+                    limit: 50
+                    offset: 0
+                    total_count: 1
+                directLinksReady:
+                  summary: Direct links ready
+                  value:
+                    info:
+                      code: INFO_LINKS
+                      name: Link information retrieved
+                      message: Returned links for requested Campaign
+                    directlinks:
+                      - link: https://reward.giftbit.com/getReward/dl-59ec25692ca940358fcd51e91e3d1fdb
+                        number: 1
+                    number_of_results: 1
+                    limit: 50
+                    offset: 0
+                    total_count: 1
+
+  /direct_links:
+    post:
+      tags: [Direct Link Orders]
+      summary: Create direct link order
+      operationId: create-direct-link-order
+      description: |
+        Places an order for direct link rewards — URLs that go straight to rewards with
+        minimal Giftbit branding and no template content or message. The reward URLs are
+        generated and returned immediately in the response.
+
+        A direct link reward can be a full catalog of options in a specific `region`, or
+        a custom reward of one or more specific `brand_codes` (which must be from the
+        same region). Set `link_count` to generate more than one direct link at a time.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectLinkCreateRequest"
+            example:
+              id: clientProvidedId_abc123
+              price_in_cents: 2500
+              expiry: "2025-01-01"
+              region: USA
+              link_count: 1
+      responses:
+        "200":
+          description: Order creation has begun; direct link URLs are returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+                  direct_links:
+                    type: array
+                    items:
+                      type: string
+                  campaign:
+                    $ref: "#/components/schemas/Campaign"
+              example:
+                info:
+                  code: INFO_CAMPAIGN_CREATED
+                  name: Campaign Created
+                  message: Campaign creation has begun.
+                status: 200
+                direct_links:
+                  - https://reward.giftbit.com/getReward/dl-59ec25692ca940358fcd51e91e3d1fdb
+                campaign:
+                  company_name: Company Name
+                  message: Here is your reward!
+                  subject: null
+                  contacts: null
+                  status: API_CREATING
+                  uuid: aa10bbe7bfa64b4a81d61d3ade419653
+                  suppress_default_greeting: false
+                  delivery_type: DIRECT_LINK
+                  region: USA
+                  expiry: "2025-01-01"
+                  id: clientProvidedId_abc123
+
+  /embedded:
+    post:
+      tags: [Embedded Rewards]
+      summary: Create embedded reward
+      operationId: create-embedded-reward
+      description: |
+        Places a reward order for a specific brand for immediate in-app delivery in your
+        app or website. The response includes a `gift_link` URL where the recipient
+        reveals their reward code.
+
+        Each call specifies `price_in_cents`, `brand_code`, and a unique supplied `id`,
+        and produces a single reward. All embedded rewards are automatically claimed and
+        cannot be canceled.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmbeddedCreateRequest"
+            example:
+              brand_code: itunesus
+              price_in_cents: 2500
+              id: myGift12345
+      responses:
+        "200":
+          description: The embedded reward has been created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+                  campaign:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      fees:
+                        $ref: "#/components/schemas/Fees"
+                      id:
+                        type: string
+                      brand_code:
+                        type: string
+                      price_in_cents:
+                        type: integer
+                  gift_link:
+                    type: string
+                    description: The unique reward link for embedding your reward.
+              example:
+                info:
+                  code: INFO_CAMPAIGN_CREATED
+                  name: Campaign Created
+                  message: Campaign creation has begun.
+                status: 200
+                campaign:
+                  uuid: 5ac9cea1234d47f5be3592ad0fe7cc76
+                  id: gift12345
+                  brand_code: itunesus
+                  price_in_cents: 2500
+                gift_link: https://testbedapp.giftbit.com/embeddedRewards/index/5ac9cea1234abcf5be3592ad0fe7cc76
+        "422":
+          description: Invalid brand or brand/price combination.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_CAMPAIGN_INVALID_BRAND
+                  name: Invalid Brand or Brand/Price combination
+                  message: "brand_code: itunesus - price_in_cents: 50000 - The brand_code provided is not valid or not available for the given price"
+                status: 422
+
+  /funds:
+    get:
+      tags: [Funds]
+      summary: Retrieve funding information
+      operationId: retrieve-funding-information
+      description: Retrieves a real-time overview of your account balance by currency.
+      responses:
+        "200":
+          description: Fund information retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundsResponse"
+              example:
+                info:
+                  code: INFO_FUNDS
+                  name: Fund information retrieved
+                  message: Your current fund information was retrieved.
+                fundsbycurrency:
+                  USD:
+                    available_in_cents: 196525
+                    pending_in_cents: 0
+                    reserved_in_cents: 41500
+                  CAD:
+                    available_in_cents: 6600
+                    pending_in_cents: 0
+                    reserved_in_cents: 1000
+                  PRO:
+                    available_in_cents: 0
+                    pending_in_cents: 0
+                    reserved_in_cents: 0
+    post:
+      tags: [Funds]
+      summary: Add funds through credit card
+      operationId: add-funds-through-credit-card
+      description: |
+        Tops up your account balance with a credit card payment. Use the web interface
+        to place a credit card on file for each currency you plan to fund. The success
+        response provides your updated account balance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currencyisocode, fund_amount_in_cents, id]
+              properties:
+                currencyisocode:
+                  type: string
+                  enum: [CAD, USD]
+                  description: Which currency to add funds in.
+                fund_amount_in_cents:
+                  type: integer
+                  description: Amount of money to fund in cents. Subject to minimums in the web application.
+                id:
+                  type: string
+                  description: A unique identifier for the funding event assigned by you.
+            example:
+              currencyisocode: USD
+              fund_amount_in_cents: 25000
+              id: clientProvidedId_abc123
+      responses:
+        "200":
+          description: Funds updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundsResponse"
+              example:
+                info:
+                  code: INFO_FUNDS_ADDED
+                  name: Funds updated
+                  message: Your funds have been updated.
+                fundsbycurrency:
+                  USD:
+                    available_in_cents: 196525
+                    pending_in_cents: 0
+                    reserved_in_cents: 41500
+                  CAD:
+                    available_in_cents: 6600
+                    pending_in_cents: 0
+                    reserved_in_cents: 1000
+                  PRO:
+                    available_in_cents: 0
+                    pending_in_cents: 0
+                    reserved_in_cents: 0
+        "402":
+          description: Credit card transaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_FUNDS_CARD_ERROR
+                  name: Credit card transaction failed
+                  message: Transaction failed. We were unable to charge your card. Go to web app to update your credit card.
+                status: 402
+        "400":
+          description: Invalid fund amount.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_FUNDS_INVALID_FUND_AMOUNT
+                  name: Invalid fund amount.
+                  message: "10000 is an invalid fund amount. Minimum in cents: 25000, Maximum in cents: 1000000"
+                status: 400
+
+  /gifts:
+    get:
+      tags: [Rewards]
+      summary: List rewards
+      operationId: list-rewards
+      description: |
+        Retrieves the details and status of rewards you've previously ordered through
+        `/campaign`, `/direct_links`, or `/embedded`. All date/time fields are in
+        Pacific Standard Time.
+      parameters:
+        - name: uuid
+          in: query
+          required: false
+          description: Return the reward with matching uuid.
+          schema:
+            type: string
+        - name: campaign_uuid
+          in: query
+          required: false
+          description: Filter rewards by the order with the matching uuid.
+          schema:
+            type: string
+        - name: campaign_id
+          in: query
+          required: false
+          description: Filter rewards by the order with the matching order id.
+          schema:
+            type: string
+        - name: price_in_cents_greater_than
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: price_in_cents_less_than
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: recipient_name
+          in: query
+          required: false
+          description: Filter by recipient name (at least 3 characters).
+          schema:
+            type: string
+        - name: recipient_email
+          in: query
+          required: false
+          description: Filter by recipient email (at least 3 characters).
+          schema:
+            type: string
+        - name: delivery_status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [UNSENT, DELIVERED, UNDELIVERABLE, TEMPORARILY_UNDELIVERABLE, UNSUBSCRIBED, COMPLAINT]
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [SENT_AND_REDEEMABLE, REDEEMED, TO_CHARITY, GIVER_CANCELLED, EXPIRED]
+        - name: created_date_greater_than
+          in: query
+          required: false
+          description: Format `yyyy-MM-dd HH:mm:ss`.
+          schema:
+            type: string
+        - name: created_date_less_than
+          in: query
+          required: false
+          description: Format `yyyy-MM-dd HH:mm:ss`.
+          schema:
+            type: string
+        - name: delivery_date_greater_than
+          in: query
+          required: false
+          description: Format `yyyy-MM-dd HH:mm:ss`.
+          schema:
+            type: string
+        - name: delivery_date_less_than
+          in: query
+          required: false
+          description: Format `yyyy-MM-dd HH:mm:ss`.
+          schema:
+            type: string
+        - name: redelivery_count_greater_than
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: redelivery_count_less_than
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: redeemed_date_greater_than
+          in: query
+          required: false
+          description: Format `yyyy-MM-dd HH:mm:ss`.
+          schema:
+            type: string
+        - name: redeemed_date_less_than
+          in: query
+          required: false
+          description: Format `yyyy-MM-dd HH:mm:ss`.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of rewards to return. Default 20.
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          description: Offset of the first reward in the total results. Default 0.
+          schema:
+            type: integer
+            default: 0
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [campaign_id, price_in_cents, recipient_name, recipient_email, delivery_status, status]
+        - name: order
+          in: query
+          required: false
+          description: Sort order. Default desc.
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: Rewards matching your search parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gifts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Gift"
+                  number_of_results:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total_count:
+                    type: integer
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+              example:
+                gifts:
+                  - uuid: d30be501ed2546e580c5c9eaf56633d9
+                    campaign_uuid: 8f5835dfb637413793c5d55f8ea95e23
+                    delivery_status: DELIVERED
+                    status: SENT_AND_REDEEMABLE
+                    management_dashboard_link: http://testbedapp.giftbit.com/campaign/campaignInfo?uuid=8f5835dfb637413793c5d55f8ea95e23&gift_uuid=d30be501ed2546e580c5c9eaf56633d9
+                    redelivery_count: 0
+                    campaign_id: may11
+                    price_in_cents: 500
+                    brand_code: itunesus
+                    marketplacegift_id: "1"
+                    created_date: "2016-05-11 12:18:25"
+                    delivery_date: "2016-05-11 12:18:32"
+                number_of_results: 1
+                limit: 1
+                offset: 0
+                total_count: 8355
+                info:
+                  code: INFO_GIFTS
+                  name: Gift information retrieved
+                  message: Returned gifts matching your search parameters.
+                status: 200
+
+  /gifts/{uuid}:
+    get:
+      tags: [Rewards]
+      summary: Retrieve reward
+      operationId: retrieve-reward
+      description: Retrieves a single reward by its uuid.
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: The uuid of the reward. Not to be mistaken for the uuid or id of the order.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The reward has been retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gift:
+                    $ref: "#/components/schemas/Gift"
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+              example:
+                gift:
+                  uuid: d30be501ed2546e580c5c9eaf56633d9
+                  campaign_uuid: 8f5835dfb637413793c5d55f8ea95e23
+                  delivery_status: DELIVERED
+                  status: SENT_AND_REDEEMABLE
+                  redelivery_count: 0
+                  campaign_id: may11
+                  price_in_cents: 500
+                  brand_code: itunesus
+                  created_date: "2016-05-11 12:18:25"
+                  delivery_date: "2016-05-11 12:18:32"
+                info:
+                  code: INFO_GIFTS
+                  name: Gift information retrieved
+                  message: Returned gifts matching your search parameters.
+                status: 200
+    put:
+      tags: [Rewards]
+      summary: Resend reward
+      operationId: resend-reward
+      description: |
+        Triggers another delivery attempt for the reward. Rewards delivered in-app via
+        `/embedded` are not eligible for resending.
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: The uuid of the reward. Not to be mistaken for the uuid or id of the order.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resend]
+              properties:
+                resend:
+                  type: boolean
+            example:
+              resend: true
+      responses:
+        "200":
+          description: The reward has been resent.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gift:
+                    $ref: "#/components/schemas/Gift"
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+              example:
+                gift:
+                  uuid: 7e0ef82bc386493498f145578268f1b2
+                  campaign_uuid: f11712f1102248ea94c47bdd3ed95690
+                  delivery_status: DELIVERED
+                  status: SENT_AND_REDEEMABLE
+                  redelivery_count: 1
+                  recipient_email: tim+1@giftbit.com
+                  recipient_name: tim1
+                  price_in_cents: 500
+                  brand_code: itunesus
+                  created_date: "2016-05-11 14:18:44"
+                  delivery_date: "2016-05-11 14:18:47"
+                info:
+                  code: INFO_GIFTS_RESENT
+                  name: Gift resent
+                  message: The gift has been resent.
+                status: 200
+    delete:
+      tags: [Rewards]
+      summary: Cancel reward
+      operationId: cancel-reward
+      description: |
+        Cancels the reward. Once a reward has been claimed by the recipient it cannot be
+        cancelled, and rewards delivered in-app via `/embedded` are not eligible for
+        cancellation.
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: The uuid of the reward. Not to be mistaken for the uuid or id of the order.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The reward has been canceled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gift:
+                    $ref: "#/components/schemas/Gift"
+                  info:
+                    $ref: "#/components/schemas/Info"
+                  status:
+                    type: integer
+              example:
+                gift:
+                  uuid: d30be501ed2546e580c5c9eaf56633d9
+                  campaign_uuid: 8f5835dfb637413793c5d55f8ea95e23
+                  delivery_status: LINKCREATED
+                  status: GIVER_CANCELLED
+                  redelivery_count: 0
+                  campaign_id: may11
+                  price_in_cents: 500
+                  brand_code: itunesus
+                  created_date: "2016-05-11 12:18:25"
+                  delivery_date: "2016-05-11 12:18:32"
+                info:
+                  code: INFO_GIFTS_CANCELED
+                  name: Gift canceled
+                  message: The gift has been canceled.
+                status: 200
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Send your API token prefixed by `Bearer ` in the `Authorization` header.
+  schemas:
+    Info:
+      type: object
+      description: Status information returned on successful requests.
+      properties:
+        code:
+          type: string
+          description: An enum-style status code for the request.
+        name:
+          type: string
+          description: Human-readable status name.
+        message:
+          type: string
+          description: Request-context-specific message.
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: An enum-style error code that will not change.
+        name:
+          type: string
+          description: Human-readable error name.
+        message:
+          type: string
+          description: Request-specific information about the error.
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/Error"
+        status:
+          type: integer
+          description: An integer that matches the HTTP status code returned.
+    Contact:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+        firstname:
+          type: string
+        lastname:
+          type: string
+    Brand:
+      type: object
+      properties:
+        brand_code:
+          type: string
+          description: A unique alphanumeric identifier for the brand.
+        name:
+          type: string
+        disclaimer:
+          type: string
+          description: Disclaimer text that must appear along with the brand when displayed. Omitted if none.
+        image_url:
+          type: string
+          description: A full, secure (https) URL to the brand's image.
+    BrandDetail:
+      allOf:
+        - $ref: "#/components/schemas/Brand"
+        - type: object
+          properties:
+            regions:
+              type: array
+              items:
+                type: integer
+              description: Region ids (per `/regions`) in which this brand is available.
+            fund_currencyisocode:
+              type: string
+            inapp_available:
+              type: boolean
+            variable_price:
+              type: boolean
+              description: True if rewards can be any value within a range; false if only fixed prices are allowed.
+            min_price_in_cents:
+              type: integer
+              description: Present only if variable_price is true.
+            max_price_in_cents:
+              type: integer
+              description: Present only if variable_price is true.
+            allowed_prices_in_cents:
+              type: array
+              items:
+                type: integer
+              description: Present only if variable_price is false.
+    Region:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        image_url:
+          type: string
+    Fees:
+      type: object
+      description: Information about the cost of the order and any associated fees.
+      properties:
+        cost_entries:
+          type: array
+          items:
+            type: object
+            properties:
+              percentage:
+                type: number
+              fee_type:
+                type: string
+              amount_in_cents:
+                type: integer
+              currency:
+                type: string
+              tax_type:
+                type: string
+              tax_in_cents:
+                type: [integer, "null"]
+              number_of_gifts:
+                type: integer
+              fee_per_gift_in_cents:
+                type: integer
+        subtotal_in_cents:
+          type: integer
+        tax_in_cents:
+          type: integer
+        tax_type:
+          type: string
+        total_in_cents:
+          type: integer
+    Campaign:
+      type: object
+      description: An order object.
+      properties:
+        company_name:
+          type: string
+        message:
+          type: string
+        subject:
+          type: [string, "null"]
+        contacts:
+          type: [array, "null"]
+          items:
+            type: object
+        price_in_cents:
+          type: integer
+        brand_codes:
+          type: array
+          items:
+            type: string
+        region:
+          type: string
+          description: "Full Catalog region name. Possibilities: USA, Canada."
+        status:
+          type: string
+          enum: [API_CREATING, AWAITING_FUNDS, CAMPAIGN_CREATED]
+        uuid:
+          type: string
+        suppress_default_greeting:
+          type: boolean
+        delivery_type:
+          type: string
+          enum: [GIFTBIT_EMAIL, SHORTLINK, DIRECT_LINK]
+        expiry:
+          type: string
+        contacts_success_count:
+          type: integer
+        contacts_failure_count:
+          type: integer
+        link_count:
+          type: integer
+        fees:
+          $ref: "#/components/schemas/Fees"
+        gift_template:
+          type: string
+        id:
+          type: string
+    Gift:
+      type: object
+      description: A single reward.
+      properties:
+        uuid:
+          type: string
+        campaign_uuid:
+          type: string
+        delivery_status:
+          type: string
+          enum: [UNSENT, DELIVERED, LINKCREATED, UNDELIVERABLE, TEMPORARILY_UNDELIVERABLE, UNSUBSCRIBED, COMPLAINT]
+        status:
+          type: string
+          enum: [SENT_AND_REDEEMABLE, REDEEMED, TO_CHARITY, GIVER_CANCELLED, EXPIRED]
+        management_dashboard_link:
+          type: string
+        redelivery_count:
+          type: integer
+        campaign_id:
+          type: string
+        price_in_cents:
+          type: integer
+        brand_code:
+          type: string
+        marketplacegift_id:
+          type: string
+          description: Deprecated. Refer to brand_code.
+        recipient_name:
+          type: string
+        recipient_email:
+          type: string
+        created_date:
+          type: string
+        delivery_date:
+          type: string
+    FundsResponse:
+      type: object
+      properties:
+        info:
+          $ref: "#/components/schemas/Info"
+        fundsbycurrency:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/CurrencyFunds"
+    CurrencyFunds:
+      type: object
+      properties:
+        available_in_cents:
+          type: integer
+          description: Available funds — your purchasing power for new reward orders.
+        pending_in_cents:
+          type: integer
+          description: Funds sent by you but not yet fully processed by Giftbit.
+        reserved_in_cents:
+          type: integer
+          description: Funds held to cover outstanding, unclaimed reward offers within their claim period.
+    CampaignCreateRequest:
+      type: object
+      required: [price_in_cents, id]
+      properties:
+        message:
+          type: string
+          description: Reward email message. Required if no supplied template.
+        subject:
+          type: string
+          description: Reward email subject. Required if no supplied template.
+        gift_template:
+          type: string
+          description: The template id used for this order.
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
+          description: A list of contact objects. Required for email delivery.
+        price_in_cents:
+          type: integer
+          description: The value of the offer in cents.
+        brand_codes:
+          type: array
+          items:
+            type: string
+          description: Custom list of one or more brand_code. Not applicable to Full Catalog choice.
+        region:
+          type: string
+          description: Region for the Full Catalog from which recipients select a brand.
+        delivery_type:
+          type: string
+          enum: [GIFTBIT_EMAIL, SHORTLINK]
+          description: Optional. Defaults to email delivery. Set to SHORTLINK to create shortlink rewards from this same `/campaign` endpoint instead of having Giftbit deliver the reward by email.
+        link_count:
+          type: integer
+          description: Optional. For shortlink orders, the number of reward links to generate. Include this when `delivery_type` is `SHORTLINK`.
+        expiry:
+          type: string
+          description: The order's claim-before date (YYYY-MM-dd). May not exceed one year from creation.
+        id:
+          type: string
+          description: A unique client-assigned identifier for the order. Idempotent on retry.
+    DirectLinkCreateRequest:
+      type: object
+      required: [id, price_in_cents]
+      anyOf:
+        - required: [brand_codes]
+        - required: [region]
+      properties:
+        id:
+          type: string
+          description: A unique client-assigned identifier for the order. Idempotent on retry.
+        price_in_cents:
+          type: integer
+        expiry:
+          type: string
+        brand_codes:
+          type: array
+          items:
+            type: string
+          description: One or more brand_codes from the same region. Omit for a Full Catalog reward.
+        region:
+          type: string
+          description: Region for a Full Catalog reward.
+        link_count:
+          type: integer
+          description: Number of reward links to generate (positive integer).
+    EmbeddedCreateRequest:
+      type: object
+      required: [price_in_cents, brand_code, id]
+      properties:
+        price_in_cents:
+          type: integer
+        brand_code:
+          type: string
+        id:
+          type: string
+          description: A unique client-assigned identifier for the order. Idempotent on retry.

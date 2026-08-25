@@ -1,0 +1,14 @@
+---
+title: "Authentication"
+description: "Authenticate with the Giftbit API by sending your API token prefixed by the word Bearer (case sensitive) and a space in the “Authorization” HTTP header."
+---
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+<Tip>
+  The [`/ping`](/api-reference/ping/ping) endpoint can be used to test your authentication.
+</Tip>
+
+Generate an API token from the `Account → API keys` section of your Giftbit account. You will require a separate token for each environment — see [Environments and URLs](/guides/environments).
