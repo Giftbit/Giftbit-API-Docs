@@ -43,13 +43,7 @@
               "guides/authentication",
               "guides/response-codes",
               "guides/getting-started",
-              "guides/going-live"
-            ]
-          },
-          {
-            "group": "Reference",
-            "icon": "code",
-            "pages": [
+              "guides/going-live",
               "guides/api-reference"
             ]
           }
@@ -82,7 +76,7 @@
           {
             "group": "Shortlink Orders",
             "icon": "link",
-            "pages": ["POST /shortlink", "GET /links/{id}"]
+            "pages": ["POST /campaign", "GET /links/{id}"]
           },
           {
             "group": "Direct Link Orders",

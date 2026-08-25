@@ -11,12 +11,12 @@ Before you begin building, consider which delivery method best suits your system
 
 <CardGroup cols={3}>
   <Card title="Link-based" icon="link">
-    Receive a unique link and pass it to another system to deliver by email, SMS, or another method.
+    A unique link that can be passed to another system for delivery.
   </Card>
-  <Card title="Email" icon="envelope">
+  <Card title="Email" icon="mail">
     Giftbit delivers a customized reward email to each recipient.
   </Card>
-  <Card title="In-app" icon="mobile-screen">
+  <Card title="In-app" icon="tablet-smartphone">
     Embed an interactive reward selection area in your app or website.
   </Card>
 </CardGroup>
@@ -36,7 +36,7 @@ There are two types of links you can use here: `direct_link` or `shortlink`.
   <Accordion title="Shortlinks include a customized landing page">
     Shortlinks first direct your recipients to a landing page as part of the reward experience. This landing page includes your logo (or another image) as well as a custom message. This is great for when you want to provide the recipient with more context that reminds them who is sending the reward and why. This might be desired if you are delivering the reward in a shorter message via SMS or social channels.
 
-    Use the [`/campaign`](/api-reference/shortlink-orders/create-shortlink-order) endpoint along with the `delivery_type: SHORTLINK` property to request shortlink rewards.
+    Use the [`/campaign`](/api-reference/email-orders/create-email-order) endpoint along with the `delivery_type: SHORTLINK` property to request shortlink rewards.
   </Accordion>
 </AccordionGroup>
 
@@ -46,11 +46,14 @@ Use the [`/campaign`](/api-reference/email-orders/create-email-order) endpoint t
 
 Giftbit specializes in email deliverability and digital trust best practices. You can access records of bounces, spam complaints, and other deliverability issues to manage the quality of your recipient lists.
 
+Use the [`/campaign`](/api-reference/email-orders/create-email-order) endpoint to send rewards by email.
 ### Delivery option 3: Rewards embedded in your app or website
 
 You can provide recipients with an interactive reward selection area in your app or website where they can choose from a selection of reward brands and immediately be redirected to a Giftbit URL to reveal the reward.
 
 In this type of integration, use the results from the [`/brands`](/api-reference/brands/list-brands) endpoint to create the interactive reward selection step in your app or website, then use the [`/embedded`](/api-reference/embedded-rewards/create-embedded-reward) endpoint to request an embeddable URL that displays a page with the chosen reward's code ready for use.
+
+Use the [`/embedded`](/api-reference/embedded-rewards/create-embedded-reward) endpoint to embed a reward directly in your application.
 
 ## Deciding between customized list or full catalog rewards
 

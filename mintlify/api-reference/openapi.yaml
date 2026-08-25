@@ -90,8 +90,12 @@ paths:
       description: |
         Returns a list of reward brands available from Giftbit, including the
         `brand_code` and an allowed price to include in your calls to `/campaign`,
-        `/direct_links`, or `/embedded`. Restrict the results with any combination of
-        price, currency, region, or search terms. Results can be paged.
+        `/direct_links`, or `/embedded`.
+
+        Some brands only allow certain fixed values, while others have an allowed range.
+        You can restrict the results list with any combination of price, currency, region, or search terms.
+
+        The results can be paged.
       parameters:
         - name: region
           in: query
@@ -244,8 +248,9 @@ paths:
       summary: List regions
       operationId: list-regions
       description: |
-        Returns a list of the regions that filter results from `/brands`. Regions are
-        used to request a Full Catalog reward from `/campaign` or `/direct_links`.
+        Returns a list of the regions that can be used to filter results from `/brands`.
+
+        Regions are also used to request a Full Catalog reward from `/campaign` or `/direct_links`.
       responses:
         "200":
           description: A list of regions has been retrieved.
@@ -282,19 +287,27 @@ paths:
   /campaign:
     post:
       tags: [Email Orders]
-      summary: Create email order
-      operationId: create-email-order
+      summary: Create standard order
+      operationId: create-standard-order
       description: |
-        Places an order for one or more rewards. By default the order is delivered by
-        Giftbit email, requiring at least one valid contact.
+        Places a standard order for one or more rewards.
 
-        Set `delivery_type: "SHORTLINK"` and a `link_count` to instead create
-        [shortlink rewards](/reference/shortlink-orders/create-shortlink-order): branded
-        links you distribute yourself. Shortlinks do not require contacts.
+        ### Email Rewards
+        By default, the order is delivered by Giftbit email and at least one
+        valid `contacts` entry is required.
+
+        ### Shortlnk Rewards
+        You can optionally set `delivery_type: SHORTLINK` to create shortlink rewards
+        instead. Shortlink rewards use the same endpoint, return the same order object,
+        but generate claim links to distribute yourself. When using
+        `delivery_type: SHORTLINK` include a `link_count` to specify the number of rewards to create.
 
         The use of `gift_template` is optional, but all required parameters must be
-        specified in the API call or set in the template. Include the optional `expiry`
-        parameter to create a promotional reward with a limited claim period.
+        specified in the API call or set in the template.
+
+        Include the optional `expiry` parameter to create a promotional reward with a limited claim period.
+
+        If you do not specify `delivery_type`, the request defaults to an email reward delivered by Giftbit.
       requestBody:
         required: true
         content:
@@ -354,17 +367,19 @@ paths:
                   contacts:
                     - email: pjhonson@giftbit.com
                       firstname: Perry
-                      added_succesfully: true
+                      added_successfully: true
                       lastname: Johnson
-                      message: New contact
+                      message: Contact ready
                   price_in_cents: 5000
                   brand_codes: [itunesus, amazonus]
                   status: API_CREATING
                   uuid: 9a405b513c11413aaac593a0c2e1a15d
+                  suppress_default_greeting: false
                   delivery_type: GIFTBIT_EMAIL
                   expiry: "2017-05-01"
                   contacts_success_count: 2
                   contacts_failure_count: 0
+                  gift_template: XDKHE
                   id: clientProvidedGiftId_abc123
         "422":
           description: One or more parameters are not valid.
@@ -417,70 +432,11 @@ paths:
                   brand_codes: [itunesus]
                   status: CAMPAIGN_CREATED
                   uuid: ee0d3f657fb640c987033e63a82e2279
+                  suppress_default_greeting: false
                   delivery_type: GIFTBIT_EMAIL
                   expiry: "2017-05-01"
+                  gift_template: XDKHE
                   id: clientProvidedGiftId_abc1232
-
-  /shortlink:
-    post:
-      tags: [Shortlink Orders]
-      summary: Create shortlink order
-      operationId: create-shortlink-order
-      description: |
-        Places an order for one or more shortlink rewards. Shortlink rewards include
-        custom branding and messaging on an initial landing page; once the short URL is
-        retrieved, distribute it yourself by email, SMS, or another method.
-
-        This is a `POST /campaign` request with `delivery_type: "SHORTLINK"`. Retrieve
-        the generated URLs from
-        [`GET /links/{id}`](/reference/shortlink-orders/retrieve-shortlink-urls).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ShortlinkCreateRequest"
-            example:
-              gift_template: XDKHE
-              delivery_type: SHORTLINK
-              link_count: 1
-              price_in_cents: 2500
-              brand_codes: [itunesus, amazonus]
-              expiry: "2023-07-07"
-              id: clientProvidedGiftId_abc123
-      responses:
-        "200":
-          description: Order creation has begun.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  info:
-                    $ref: "#/components/schemas/Info"
-                  status:
-                    type: integer
-                  campaign:
-                    $ref: "#/components/schemas/Campaign"
-              example:
-                info:
-                  code: INFO_CAMPAIGN_CREATED
-                  name: Campaign Created
-                  message: Campaign creation has begun.
-                status: 200
-                campaign:
-                  company_name: Company Name
-                  message: Thanks for being such an awesome customer!
-                  subject: Please enjoy this reward!
-                  contacts: []
-                  status: API_CREATING
-                  uuid: 49e90cb2616b4893b55871a1786f84b0
-                  delivery_type: SHORTLINK
-                  price_in_cents: 2500
-                  brand_codes: [itunesus, amazonus]
-                  expiry: "2023-07-07"
-                  id: clientProvidedGiftId_abc123
-                  link_count: 1
 
   /links/{id}:
     get:
@@ -629,9 +585,10 @@ paths:
                   company_name: Company Name
                   message: Here is your reward!
                   subject: null
-                  contacts: []
+                  contacts: null
                   status: API_CREATING
                   uuid: aa10bbe7bfa64b4a81d61d3ade419653
+                  suppress_default_greeting: false
                   delivery_type: DIRECT_LINK
                   region: USA
                   expiry: "2025-01-01"
@@ -1303,7 +1260,7 @@ components:
         subject:
           type: [string, "null"]
         contacts:
-          type: array
+          type: [array, "null"]
           items:
             type: object
         price_in_cents:
@@ -1320,6 +1277,8 @@ components:
           enum: [API_CREATING, AWAITING_FUNDS, CAMPAIGN_CREATED]
         uuid:
           type: string
+        suppress_default_greeting:
+          type: boolean
         delivery_type:
           type: string
           enum: [GIFTBIT_EMAIL, SHORTLINK, DIRECT_LINK]
@@ -1333,6 +1292,8 @@ components:
           type: integer
         fees:
           $ref: "#/components/schemas/Fees"
+        gift_template:
+          type: string
         id:
           type: string
     Gift:
@@ -1423,44 +1384,22 @@ components:
         delivery_type:
           type: string
           enum: [GIFTBIT_EMAIL, SHORTLINK]
-          description: Defaults to email delivery. Set to SHORTLINK for shortlink rewards.
+          description: Optional. Defaults to email delivery. Set to SHORTLINK to create shortlink rewards from this same `/campaign` endpoint instead of having Giftbit deliver the reward by email.
         link_count:
           type: integer
-          description: For shortlink orders, the number of reward links to generate.
+          description: Optional. For shortlink orders, the number of reward links to generate. Include this when `delivery_type` is `SHORTLINK`.
         expiry:
           type: string
           description: The order's claim-before date (YYYY-MM-dd). May not exceed one year from creation.
         id:
           type: string
           description: A unique client-assigned identifier for the order. Idempotent on retry.
-    ShortlinkCreateRequest:
-      type: object
-      required: [delivery_type, link_count, price_in_cents, brand_codes, id]
-      properties:
-        message:
-          type: string
-        gift_template:
-          type: string
-        delivery_type:
-          type: string
-          enum: [SHORTLINK]
-          description: Must be set to SHORTLINK.
-        link_count:
-          type: integer
-          description: Number of reward links to generate (positive integer).
-        price_in_cents:
-          type: integer
-        brand_codes:
-          type: array
-          items:
-            type: string
-        expiry:
-          type: string
-        id:
-          type: string
     DirectLinkCreateRequest:
       type: object
       required: [id, price_in_cents]
+      anyOf:
+        - required: [brand_codes]
+        - required: [region]
       properties:
         id:
           type: string

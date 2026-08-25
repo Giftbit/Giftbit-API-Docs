@@ -3,23 +3,19 @@ title: "HTTP success and error codes"
 description: "Your API integration should always check the HTTP response code to ensure correct handling of success and error conditions."
 ---
 
-<Warning>
-  **Only** an HTTP status of `200` means the request was successful.
-</Warning>
+Only an HTTP status of **200** means the request was successful. 
 
-For non-200 responses, the predictable response body (described below) will give you details on why the request failed. 
+For non-200 responses, the predictable response body (described below) will give you details on why the request failed.
 
-We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to assist with troubleshooting. 
-
-This section gives details on the response codes and recommended actions.
+We suggest logging any failure response body as best practice; the Giftbit support team will need the full response body to assist with troubleshooting. This section gives details on the response codes and recommended actions.
 
 ## Success responses
-
-**200** — Success. See the [API reference](/api-reference) for the success response format of each endpoint.
+<Check>**200**: Success. See the [API reference](/api-reference) for the response format of each endpoint.</Check>
 
 ## Error responses
+All non-200 responses should be treated as an error and either retried, or the request fixed and then retried. This section details the different potential non-200 responses. 
 
-All non-`200` responses should be treated as an error and either retried, or the request fixed and then retried. This section details the different potential non-`200` responses. To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
+To assist with your programmatic error handling and troubleshooting, all error response bodies are returned in the following JSON format:
 
 ```json
 {
@@ -83,4 +79,4 @@ If you receive a network timeout or other unexpected response (such as a `5xx`) 
   The supplied `id` is idempotent — Giftbit will only ever create one order with a given supplied `id`. The supplied `id` must always be unique across different requests.
 </Info>
 
-We highly recommend using exponential backoff with a limited number of tries for timeouts and unexpected responses (such as a `5xx`), with clear logging or alerts to allow for investigation.
+We ask for, and recommend using exponential backoff with a limited number of tries for timeouts and unexpected responses (such as a `5xx`), with clear logging or alerts to allow for investigation.
