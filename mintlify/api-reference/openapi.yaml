@@ -287,10 +287,10 @@ paths:
   /campaign:
     post:
       tags: [Email Orders]
-      summary: Create standard order
-      operationId: create-standard-order
+      summary: Create order
+      operationId: create-order
       description: |
-        Places a standard order for one or more rewards.
+        Places an order for one or more rewards.
 
         ### Email Rewards
         By default, the order is delivered by Giftbit email and at least one
