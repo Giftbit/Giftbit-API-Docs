@@ -287,23 +287,24 @@ paths:
   /campaign:
     post:
       tags: [Email Orders]
-      summary: Create standard order
-      operationId: create-standard-order
+      summary: Create order
+      operationId: create-order
       description: |
-        Places a standard order for one or more rewards.
+        Places an order for one or more rewards.
 
         ### Email Rewards
-        By default, the order is delivered by Giftbit email and at least one
+        Orders are delivered via Giftbit email by default, and at least one
         valid `contacts` entry is required.
 
         ### Shortlnk Rewards
-        You can optionally set `delivery_type: SHORTLINK` to create shortlink rewards
-        instead. Shortlink rewards use the same endpoint, return the same order object,
-        but generate claim links to distribute yourself. When using
+        Optionally, you can set `delivery_type: SHORTLINK` to create shortlink rewards that don't require any `contacts`.
+        Shortlink rewards use the same endpoint, return the same order object,
+        but generate links you can distribute yourself. When using
         `delivery_type: SHORTLINK` include a `link_count` to specify the number of rewards to create.
 
+        ### Order Configuration
         The use of `gift_template` is optional, but all required parameters must be
-        specified in the API call or set in the template.
+        specified in the API call, or set in the template.
 
         Include the optional `expiry` parameter to create a promotional reward with a limited claim period.
 
