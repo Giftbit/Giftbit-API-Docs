@@ -109,8 +109,7 @@
   },
   "logo": {
     "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg",
-    "href": "https://giftbit.com"
+    "dark": "/logo/dark.svg"
   },
   "navbar": {
     "links": []
