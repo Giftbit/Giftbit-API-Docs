@@ -5,83 +5,69 @@ description: "Choose a delivery method, decide between customized-list and full-
 
 The Giftbit API is designed to be simple yet powerful. This guide is a starting point to help you structure your integration. We encourage you to reach out to the Giftbit team at any time to discuss your program and integration at [testbed@giftbit.com](mailto:testbed@giftbit.com).
 
-## Reward delivery
+## Deciding between delivery methods
 
-Before you begin building, consider which delivery method best suits your system workflow and your intended user experience. There are three delivery methods.
+Before you begin building, consider which delivery method best suits your system workflow and your intended user experience. There are two delivery methods.
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="Link-based" icon="link">
-    A unique link that can be passed to another system for delivery.
+    When your system places an order, it is fulfilled as a link-based reward that can be passed to another system for delivery.<br/>Link-based formats include Shortlinks, Direct Links, and Embedded Rewards.
   </Card>
   <Card title="Email" icon="mail">
-    Giftbit delivers a customized reward email to each recipient.
-  </Card>
-  <Card title="In-app" icon="tablet-smartphone">
-    Embed an interactive reward selection area in your app or website.
+  When your system places an order, it is fulfilled by Giftbit as an email-based reward delivered to the specified contact.
   </Card>
 </CardGroup>
 
 ### Delivery option 1: Another system delivers a link
 
-You can receive a unique link and pass it to another system to deliver the reward to a recipient by email, SMS, or another distribution method. You can send a predefined reward brand or a choice between reward brands. Each reward has a customizable claim period.
+You can receive a unique link and pass it to another system to deliver the reward to a recipient by email, SMS, or another distribution method.
 
-There are two types of links you can use here: `direct_link` or `shortlink`.
+There are three types of links you can use here: `direct_link`, `shortlink`, or `embedded`.
 
 <AccordionGroup>
-  <Accordion title="Direct links go straight to a reward">
-    Direct links go to either a predefined reward brand or a choice between reward brands. This provides the minimum necessary user interface without additional messaging or branding. This is great for when your link delivery method already includes a lot of detail and you don't need to provide any more context — for example, merging into emails delivered by a system other than Giftbit.
+  <Accordion title="Direct Links">
+    Direct Links skip the landing page, leading directly to claim steps for a single reward brand or a choice of reward brands.
 
-    Use the [`/direct_links`](/api-reference/direct-link-orders/create-direct-link-order) endpoint to request direct link rewards.
+    Use the [`/direct_links`](/api-reference/direct-link-orders/create-direct-link-order) endpoint to create direct link rewards.
   </Accordion>
-  <Accordion title="Shortlinks include a customized landing page">
-    Shortlinks first direct your recipients to a landing page as part of the reward experience. This landing page includes your logo (or another image) as well as a custom message. This is great for when you want to provide the recipient with more context that reminds them who is sending the reward and why. This might be desired if you are delivering the reward in a shorter message via SMS or social channels.
+  <Accordion title="Shortlinks">
+    Shortlinks lead to a landing page with a message then the claim steps for either a single reward brand or a choice of reward brands depending on your template.
 
-    Use the [`/campaign`](/api-reference/email-orders/create-order) endpoint along with the `delivery_type: SHORTLINK` property to request shortlink rewards.
+    Use the [`/campaign`](/api-reference/email-orders/create-order) endpoint along with the `delivery_type: SHORTLINK` property to create shortlink rewards.
+  </Accordion>
+  <Accordion title="Embedded Rewards">
+      Embedded Rewards skip both the landing page and the claim steps and lead to the gift code reveal step for a single reward brand.
+      
+       Use the [`/embedded`](/api-reference/embedded-rewards/create-embedded-reward) endpoint to create an embedded reward.
   </Accordion>
 </AccordionGroup>
 
 ### Delivery option 2: Giftbit delivers your reward by email
-
 Use the [`/campaign`](/api-reference/email-orders/create-order) endpoint to request a reward be delivered to your recipient by email. Giftbit delivers your customized reward email to each recipient via an HTML email. You can send a predefined reward brand or a choice between reward brands. Each reward has a customizable claim period.
 
 Giftbit specializes in email deliverability and digital trust best practices. You can access records of bounces, spam complaints, and other deliverability issues to manage the quality of your recipient lists.
 
 Use the [`/campaign`](/api-reference/email-orders/create-order) endpoint to send rewards by email.
-### Delivery option 3: Rewards embedded in your app or website
-
-You can provide recipients with an interactive reward selection area in your app or website where they can choose from a selection of reward brands and immediately be redirected to a Giftbit URL to reveal the reward.
-
-In this type of integration, use the results from the [`/brands`](/api-reference/brands/list-brands) endpoint to create the interactive reward selection step in your app or website, then use the [`/embedded`](/api-reference/embedded-rewards/create-embedded-reward) endpoint to request an embeddable URL that displays a page with the chosen reward's code ready for use.
-
-Use the [`/embedded`](/api-reference/embedded-rewards/create-embedded-reward) endpoint to embed a reward directly in your application.
 
 ## Deciding between customized list or full catalog rewards
 
-There are multiple ways to set the brands in a call to `/campaign` or `/direct_links`, depending on whether your system sends a single reward brand or offers a choice.
+There are multiple ways to set the reward brand options in a call to `/campaign` or `/direct_links`, depending on whether your system sends a single reward brand or offers a choice.
 
 ### Your system hosts the choice step
 
-If you host the interactive choice step in your app or website using the results from the `/brands` endpoint, you can specify the price and brand in each API call in reaction to the selection made by the recipient.
+You can use the information available from the `/brands` endpoint to host the interactive reward brand choice step in your app or website. The `/brands` endpoint provides retail partner names, logos, and allowed price ranges for presenting a selection of reward brands.
 
-If you specify the `gift_template` in your request, use the web interface to edit your template and check the box labeled **provide in API call** in the reward section of the template. Both `price_in_cents` and `brand_code` are then required in your API call for a successful response.
-
-If you don't specify the `gift_template`, you are required to provide all required parameters in the API call, including `price_in_cents` and `brand_code`.
+When your system places an order in reaction to a selection in your interactive choice step, your system will specify the `brand_code` and `price_in_cents` for the selected reward brand. If the request specifies a `gift_template`, the `brand_code` in the request will override the reward brand(s) in the template.
 
 ### Your system sends one brand or a customized list of brands
 
-If your integration always sends the same brand or list of brands for each request, you can either set the brand(s) in your template using the web interface or specify the `brand_codes` in the API call. If your API call contains more than one `brand_codes`, the recipient can choose from that list of predefined brand options.
+If your integration always sends the same single reward brand, or a fixed list of reward brands, you can either preselect the reward brand(s) in the template using the web interface or specify one or multiple `brand_codes` and a `price_in_cents` in the request. If multiple `brand_codes` are specified, Giftbit provides a choice of  reward brand options in the claim steps. This allows your integration to skip building an interactive choice step.
 
 ### Giftbit provides the choice step with all available options
 
-With the Full Catalog option, you can bypass the need for the interactive choice step within your app or website. This format presents the recipient with the option to choose from all available reward brands at a specific price point for a specific region.
+If you choose to offer the full selection of reward brands for a given region, instead of specifying a reward brand or list of brands on a request-by-request basis, you can request a Full Catalog reward by omitting the `brand_code` and instead specifying the `region` and `price_in_cents` in the request. 
 
-To request a Full Catalog reward, omit the `brand_code` and specify the `region` along with `price_in_cents` in your API call, provided that the `gift_template` is not specified.
-
-If you specify the `gift_template` in your API call, use the web interface to modify your template: navigate to the reward section of the template, set the desired price and region, and select Full Catalog.
-
-<Note>
-  When the `gift_template` is specified with Full Catalog selected, and the `price_in_cents` provided in the API call differs from the price set in the template, the choice step for the Full Catalog reward automatically adjusts to display brands that align with the overridden price.
-</Note>
+If you specify a `gift_template` in the request, you can set the region in your template and select the Full Catalog format using the web interface.
 
 ## Promotional rewards
 
