@@ -69,11 +69,15 @@ If you choose to offer the full selection of reward brands for a given region, i
 
 If you specify a `gift_template` in the request, you can set the region in your template and select the Full Catalog format using the web interface.
 
-## Promotional rewards
+## Deciding between expiring and non-expiring rewards
+### Standard Rewards
+Standard rewards have an unlimited claim period. You can place an order for a Standard Reward by omitting the expiry from the request, or by toggling the format to Standard in the `gift_template` using the web interface. 
 
-By providing an `expiry` date in your API call to the `/campaign` or `/direct_links` endpoint, you can limit the period in which your recipients may claim their reward.
+### Promotional rewards
+By providing an expiry date in your API call to the `/campaign` or `/direct_links` endpoint, you can limit the period in which your recipients may claim their reward. 
 
-This claim period can also be set on a `gift_template` in the web interface by marking a template as promotional and setting a number of days the reward is eligible to be claimed. Any rewards ordered using a `gift_template` flagged as promotional automatically set the calculated `expiry` date.
+This claim period can also be set on a `gift_template` in the web interface by marking a template as promotional and setting a number of days the reward is eligible to be claimed. Any rewards ordered using a `gift_template` flagged as promotional automatically set the calculated expiry date.
+
 
 ## Retrieving reward brand information
 
@@ -83,9 +87,9 @@ A limited number of reward brands are available for testing purposes in Testbed.
 
 ## Using templates with email and shortlink rewards
 
-Templates allow rewards with custom messaging and branding to be richly formatted, and provide a nice separation of responsibility between content creators and developers.
+Templates allow rewards with custom messaging and branding to be richly formatted, and provide a potential separation of responsibility between content creators and developers.
 
-The custom reward content — subject, the message with formatting and rich content, and company brand image — is maintained through the web interface and WYSIWYG editor, without requiring any changes to the API calls themselves when the content changes. To get started with templates, navigate to the templates section of your Giftbit account.
+The custom reward content — subject, the message with formatting and rich content, and company brand image is maintained through the web interface and WYSIWYG editor, without requiring any changes to the API calls themselves when the content changes. To get started with templates, navigate to the templates section of your Giftbit account.
 
 Each template is auto-assigned a unique uppercase short identifier shown in the web interface. This is the id you'll use in the `gift_template` field of the `/campaign` creation request.
 
@@ -104,3 +108,17 @@ While we highly recommend using templates, it is not mandatory. You may specify 
 While not required for your integration, the [`/gifts`](/api-reference/rewards/list-rewards) endpoint retrieves detailed information and status for the rewards you've previously ordered through the `/campaign`, `/direct_links`, or `/embedded` endpoints.
 
 The `/gifts` endpoint also allows your system to perform lifecycle and delivery-type-dependent actions, such as triggering another email delivery attempt for rewards delivered by Giftbit.
+
+<Note>
+  Please use the `/gifts` endpoint responsibly by following these guidelines:
+    <ul>
+          <li>Observe rate limits when requesting reward information from the `/gifts` endpoint.</li>
+      
+      <li>
+          Once rewards reach a final outcome such as `CLAIMED`, `ADMIN_CANCELED`, `USER_CANCELED`, or `EXPIRED` the state of the reward will not change again. Discontinue requesting reward information once a final outcome is determined.
+      </li>
+      <li>
+          Please have error handling in place for requests to `/gifts` and discontinue requesting reward information if your request produces an `INVALID` or `EXPIRED` reward response.
+      </li>
+  </ul>
+</Note>
