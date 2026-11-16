@@ -46,6 +46,14 @@ To assist with your programmatic error handling and troubleshooting, all error r
 }
 ```
 
+## Unavailable brands
+
+Check `available` in the [brands list](/api-reference/brands/list-brands) before including a brand in a new order. Brands in a temporary outage remain visible with `available: false`.
+
+If you explicitly select a temporarily unavailable brand with `brand_code` or `brand_codes`, `/campaign`, `/direct_links`, and `/embedded` return HTTP `422` with `ERROR_CAMPAIGN_INVALID_BRAND`. This is the existing invalid-brand response. Refresh your catalog and choose an available brand and supported denomination before retrying. Availability can change between reading the catalog and submitting the order, so handle this error even when your last snapshot showed `available: true`.
+
+For Full Catalog orders, at least one available brand must support the requested region and amount. If none remain, the request returns HTTP `422` with `ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT` and the message `No rewards available at the given 'price_in_cents' for the selected region.`
+
 ## Error response codes
 
 <AccordionGroup>

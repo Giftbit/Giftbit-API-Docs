@@ -1,6 +1,17 @@
-# Giftbit API Docs repository
-This repository contains [the markdown](https://github.com/Giftbit/Giftbit-API-Docs/blob/master/apiary.apib)  that creates and powers the Giftbit API documentation at
+# Giftbit API docs
 
-https://www.giftbit.com/giftbitapi/
+The public documentation at [docs.giftbit.com](https://docs.giftbit.com) is built with Mintlify from the `mintlify/` directory. The API reference comes from `mintlify/api-reference/openapi.yaml`; guides and navigation are in `mintlify/guides/` and `mintlify/docs.json`.
 
-If you find an error or wish to make am improvement, please submit a pull request
+Keep the legacy Apiary Blueprint, `apiary.apib`, in sync until it is retired.
+
+## Local preview and checks
+
+From `mintlify/`, run:
+
+```sh
+npx mint dev
+npx mint broken-links
+npx @redocly/cli lint api-reference/openapi.yaml
+```
+
+Submit changes through a pull request. Coordinate publication of API changes with the corresponding backend rollout.

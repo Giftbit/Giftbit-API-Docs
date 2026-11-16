@@ -88,14 +88,30 @@ paths:
       summary: List brands
       operationId: list-brands
       description: |
-        Returns a list of reward brands available from Giftbit, including the
-        `brand_code` and an allowed price to include in your calls to `/campaign`,
+        Returns the reward brands visible to your account, including each brand's
+        `brand_code`, availability, currency, and denominations for calls to `/campaign`,
         `/direct_links`, or `/embedded`.
 
-        Some brands only allow certain fixed values, while others have an allowed range.
-        You can restrict the results list with any combination of price, currency, region, or search terms.
+        Temporarily unavailable brands remain in the response with `available: false`.
+        Do not include these brands in new orders. Brands that are no longer offered
+        or visible to your account may be omitted from later responses.
 
-        The results can be paged.
+        For fixed-price brands, use `allowed_prices_in_cents`. For variable-price brands,
+        use `min_price_in_cents` and `max_price_in_cents`. All amounts are in
+        `fund_currencyisocode`, and only currently offered denominations are included.
+        You can restrict the results list with any combination of price, currency, region, or search terms.
+        Price filters select brands; the returned denominations still describe the
+        brand's full currently offered range or fixed values.
+
+        Refresh this catalog snapshot to pick up availability and denomination changes.
+        Page through results with `limit` and `offset`, and follow the
+        [rate-limit guidance](/guides/response-codes) when refreshing your catalog.
+        Availability can change before you submit an order; handle the
+        [ordering error response](/guides/response-codes#unavailable-brands) even if a
+        previous snapshot showed `available: true`.
+
+        Retrieve a single brand for the detail-only `description`, `regions`, and
+        `embeddable` fields.
       parameters:
         - name: region
           in: query
@@ -178,9 +194,18 @@ paths:
                     disclaimer: >-
                       Amazon.com Gift Cards ("GCs") sold by Giftbit Inc., an authorized and
                       independent reseller of Amazon.com Gift Cards.
+                    available: true
+                    fund_currencyisocode: USD
+                    variable_price: true
+                    min_price_in_cents: 100
+                    max_price_in_cents: 50000
                   - brand_code: WHOLEFOODS
                     name: Whole Foods Market
                     image_url: https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png
+                    available: false
+                    fund_currencyisocode: USD
+                    variable_price: false
+                    allowed_prices_in_cents: [1000, 2500, 5000, 10000]
                 number_of_results: 2
                 info:
                   code: INFO_BRANDS_RETRIEVED
@@ -195,7 +220,14 @@ paths:
       tags: [Brands]
       summary: Retrieve brand
       operationId: retrieve-brand
-      description: Retrieves extended information about the specified brand.
+      description: |
+        Retrieves a brand's availability, currency, and denominations, plus the
+        detail-only `description`, `regions`, and `embeddable` fields.
+
+        A temporary outage does not hide the brand: the response is `200` with
+        `available: false`. Check availability and supported denominations before
+        including the brand in a new order. Availability can change before submission;
+        handle the [ordering error response](/guides/response-codes#unavailable-brands).
       parameters:
         - name: brand_code
           in: path
@@ -220,9 +252,11 @@ paths:
                   brand_code: WHOLEFOODS
                   name: Whole Foods Market
                   image_url: https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png
+                  available: false
+                  description: Whole Foods Market digital reward.
                   regions: [2]
                   fund_currencyisocode: USD
-                  inapp_available: true
+                  embeddable: true
                   variable_price: false
                   allowed_prices_in_cents: [1000, 2500, 5000, 10000]
                 info:
@@ -230,17 +264,28 @@ paths:
                   name: Brand(s) Retrieved
                   message: A list of brands or single brand has been retrieved
         "422":
-          description: No brand found matching that code.
+          description: The brand code does not exist or is not visible to your account.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error:
-                  code: ERROR_BRANDS_NO_SUCH_BRAND
-                  name: No brand found
-                  message: No brand found matching that code
-                status: 422
+              examples:
+                notFound:
+                  summary: The brand code does not exist.
+                  value:
+                    error:
+                      code: ERROR_BRANDS_NO_SUCH_BRAND
+                      name: No brand found
+                      message: No brand found matching that code
+                    status: 422
+                notVisible:
+                  summary: The brand is not available to your account.
+                  value:
+                    error:
+                      code: ERROR_BRANDS_BRAND_NOT_AVAILABLE
+                      name: Brand unavailable
+                      message: The brand_code provided is not available to your account.  Contact Giftbit customer support for more information
+                    status: 422
 
   /regions:
     get:
@@ -291,6 +336,11 @@ paths:
       operationId: create-order
       description: |
         Places an order for one or more rewards.
+
+        Explicit brand selections must currently be available. A temporarily
+        unavailable `brand_code` returns `422` with `ERROR_CAMPAIGN_INVALID_BRAND`.
+        For Full Catalog orders, at least one available brand must support the region
+        and amount. See [unavailable brands](/guides/response-codes#unavailable-brands).
 
         ### Email Rewards
         Orders are delivered via Giftbit email by default, and at least one
@@ -383,7 +433,7 @@ paths:
                   gift_template: XDKHE
                   id: clientProvidedGiftId_abc123
         "422":
-          description: One or more parameters are not valid.
+          description: One or more parameters are not valid, including an explicit brand that is temporarily unavailable.
           content:
             application/json:
               schema:
@@ -544,6 +594,11 @@ paths:
         A direct link reward can be a full catalog of options in a specific `region`, or
         a custom reward of one or more specific `brand_codes` (which must be from the
         same region). Set `link_count` to generate more than one direct link at a time.
+
+        Explicit brand selections must currently be available. A temporarily
+        unavailable `brand_code` returns `422` with `ERROR_CAMPAIGN_INVALID_BRAND`.
+        For Full Catalog orders, at least one available brand must support the region
+        and amount. See [unavailable brands](/guides/response-codes#unavailable-brands).
       requestBody:
         required: true
         content:
@@ -595,6 +650,19 @@ paths:
                   expiry: "2025-01-01"
                   id: clientProvidedId_abc123
 
+        "422":
+          description: Invalid parameters, including an explicit brand that is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_CAMPAIGN_INVALID_BRAND
+                  name: Invalid Brand or Brand/Price combination
+                  message: "brand_code: itunesus - price_in_cents: 2500 - The brand_code provided is not valid or not available for the given price"
+                status: 422
+
   /embedded:
     post:
       tags: [Embedded Rewards]
@@ -608,6 +676,10 @@ paths:
         Each call specifies `price_in_cents`, `brand_code`, and a unique supplied `id`,
         and produces a single reward. All embedded rewards are automatically claimed and
         cannot be canceled.
+
+        The selected brand must currently be available. A temporarily unavailable
+        `brand_code` returns `422` with `ERROR_CAMPAIGN_INVALID_BRAND`. See
+        [unavailable brands](/guides/response-codes#unavailable-brands).
       requestBody:
         required: true
         content:
@@ -659,7 +731,7 @@ paths:
                   price_in_cents: 2500
                 gift_link: https://testbedapp.giftbit.com/embeddedRewards/index/5ac9cea1234abcf5be3592ad0fe7cc76
         "422":
-          description: Invalid brand or brand/price combination.
+          description: Invalid brand or brand/price combination, including a brand that is temporarily unavailable.
           content:
             application/json:
               schema:
@@ -1168,6 +1240,7 @@ components:
           type: string
     Brand:
       type: object
+      required: [available, fund_currencyisocode, variable_price]
       properties:
         brand_code:
           type: string
@@ -1180,34 +1253,45 @@ components:
         image_url:
           type: string
           description: A full, secure (https) URL to the brand's image.
+        expiry_period:
+          type: string
+          description: A human-readable brand expiry period. Omitted when no expiry period is provided.
+        available:
+          type: boolean
+          description: Whether you can include this brand in a new order. Temporarily unavailable brands remain in the response with `false`. Availability can change before you submit an order.
+        fund_currencyisocode:
+          type: string
+          description: The three-letter currency code for all denomination amounts returned for this brand.
+        variable_price:
+          type: boolean
+          description: True for a variable-price brand with a minimum and maximum amount; false for a fixed-price brand with `allowed_prices_in_cents`.
+        min_price_in_cents:
+          type: integer
+          description: The minimum reward value in `fund_currencyisocode` cents. Present only when `variable_price` is true.
+        max_price_in_cents:
+          type: integer
+          description: The maximum reward value in `fund_currencyisocode` cents. Present only when `variable_price` is true.
+        allowed_prices_in_cents:
+          type: array
+          items:
+            type: integer
+          description: Currently offered fixed reward values in `fund_currencyisocode` cents, in ascending order. Present only when `variable_price` is false.
     BrandDetail:
       allOf:
         - $ref: "#/components/schemas/Brand"
         - type: object
           properties:
+            description:
+              type: [string, "null"]
+              description: A description of the brand's reward. Returned only by the single-brand endpoint.
             regions:
               type: array
               items:
                 type: integer
-              description: Region ids (per `/regions`) in which this brand is available.
-            fund_currencyisocode:
-              type: string
-            inapp_available:
+              description: Region ids (per `/regions`) in which this brand is offered. Returned only by the single-brand endpoint.
+            embeddable:
               type: boolean
-            variable_price:
-              type: boolean
-              description: True if rewards can be any value within a range; false if only fixed prices are allowed.
-            min_price_in_cents:
-              type: integer
-              description: Present only if variable_price is true.
-            max_price_in_cents:
-              type: integer
-              description: Present only if variable_price is true.
-            allowed_prices_in_cents:
-              type: array
-              items:
-                type: integer
-              description: Present only if variable_price is false.
+              description: Whether the brand supports in-app delivery via `/embedded`. Returned only by the single-brand endpoint; check `available` separately before ordering.
     Region:
       type: object
       properties:

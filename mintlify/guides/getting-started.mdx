@@ -83,6 +83,8 @@ This claim period can also be set on a `gift_template` in the web interface by m
 
 Using the [`/brands`](/api-reference/brands/list-brands) endpoint, you can access the list of reward brands available from Giftbit and detailed information about each brand, including the `brand_code` and an allowed price to include in your API calls to `/campaign`, `/direct_links`, or `/embedded`.
 
+The list includes each brand's `available` status, currency, and fixed values or variable-price range. Refresh the catalog to keep these values current. Temporarily unavailable brands remain in the list with `available: false`; choose an available brand before ordering and handle the [unavailable-brand error](/guides/response-codes#unavailable-brands) if availability changes before submission.
+
 A limited number of reward brands are available for testing purposes in Testbed. The complete list of production reward brands is at [giftbit.com/brands](https://www.giftbit.com/brands/).
 
 ## Using templates with email and shortlink rewards
