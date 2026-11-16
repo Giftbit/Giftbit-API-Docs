@@ -87,9 +87,9 @@ Example:
 
 ***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid. An example would be trying to create an order with a reward value outside of the allowed range for that brand. Ensure the request parameters are valid.
 
-When you explicitly select a temporarily unavailable brand with `brand_code` or `brand_codes`, `/campaign`, `/direct_links`, and `/embedded` return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Check `available` in `GET /brands`, refresh your catalog, and choose an available brand and supported denomination before retrying. Availability can change before submission, so handle this error even when your last snapshot showed `available: true`.
+When you explicitly select a temporarily unavailable brand with `brand_code` or `brand_codes`, `/campaign`, `/direct_links`, and `/embedded` return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Availability can change before submission, so handle this error even if `GET /brands` previously returned `available: true`.
 
-Full Catalog orders require at least one available brand supporting the requested region and amount. If none remain, the API returns 422 with `ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT` and the message `No rewards available at the given 'price_in_cents' for the selected region.`
+Full Catalog orders require at least one available brand supporting the requested region and amount. Otherwise, the API returns 422 with `ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT` and the message `No rewards available at the given 'price_in_cents' for the selected region.`
 
 ***429:*** Too many requests. The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. It is recommended that if you do recieve a 429 response, your code automatically retry your request with a backoff delay. Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for any request. If you feel you are being frequently rate limited in a valid usage pattern, please contact support.
 
@@ -182,8 +182,6 @@ A limited number of reward brands are available for testing purposes in Testbed.
 
 Searching, filtering, and result paging uses the `/brands` endpoint described in the Reference section.
 
-The list includes each brand's `available` status, currency, and fixed values or variable-price range. Refresh this snapshot to keep your catalog current. Temporarily unavailable brands remain visible with `available: false`; do not include them in new orders. Follow the rate-limit guidance when refreshing your catalog.
-
 ### Using templates with email and shortlink rewards
 
 Templates allow rewards with custom messaging and branding to be richly formatted and provide a nice separation of responsibility between content creators and developers.
@@ -215,10 +213,9 @@ The Giftbit team makes heavy use of external APIs ourselves, and we know how fru
 
 ### Brand availability and denominations
 
-- Brand list and detail responses include `available`. A temporary outage leaves the brand visible with `available: false`.
-- The brands list includes `fund_currencyisocode` and `variable_price`, plus `allowed_prices_in_cents` for fixed-price brands or `min_price_in_cents` and `max_price_in_cents` for variable-price brands.
-- `description`, `regions`, and `embeddable` remain exclusive to single-brand responses.
-- New orders that explicitly select an unavailable brand return 422 with the existing `ERROR_CAMPAIGN_INVALID_BRAND` response. Full Catalog orders require at least one available brand supporting the region and amount.
+- Brand list and detail responses include `available`; temporarily unavailable brands remain visible with `available: false`.
+- Brand list responses include `fund_currencyisocode`, `variable_price`, and `allowed_prices_in_cents` or `min_price_in_cents` / `max_price_in_cents`.
+- Orders that explicitly select an unavailable brand return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Full Catalog orders require an available brand supporting the region and amount.
 
 ## Ping [/ping]
 `GET /ping` provides a way to test your authentication and check the health of the Giftbit API.
@@ -264,15 +261,13 @@ The Giftbit team makes heavy use of external APIs ourselves, and we know how fru
 
 ## Brands [/brands]
 
-`GET /brands` returns the reward brands visible to your account, including each brand's `brand_code`, availability, currency, and denominations for calls to `/campaign`, `/direct_links`, or `/embedded`.
+`GET /brands` returns a list of reward brands available from Giftbit and detailed information, including the `brand_code` and an allowed price to include in your API calls to `/campaign`, `/direct_link`, or `/embedded`. 
+Some brands only allow certain fixed values, while others have an allowed range.
+You can restrict the results list with any combination of price, currency, region, or search terms. The `/brands` endpoint supports the paging of results.
 
-Temporarily unavailable brands remain in the response with `available: false`. Do not include these brands in new orders. Brands that are no longer offered or visible to your account may be omitted from later responses.
+`GET /brands/{brand_code}` retrieves extended information about the specified brand.
 
-For fixed-price brands, use `allowed_prices_in_cents`. For variable-price brands, use `min_price_in_cents` and `max_price_in_cents`. All amounts are in `fund_currencyisocode`, and only currently offered denominations are included.
-
-You can restrict the results list with any combination of price, currency, region, or search terms. Price filters select brands; the returned denominations still describe the brand's full currently offered range or fixed values. Page through results with `limit` and `offset` to refresh your catalog snapshot, and follow the rate-limit guidance.
-
-`GET /brands/{brand_code}` retrieves the same availability, currency, and denomination fields, plus the detail-only `description`, `regions`, and `embeddable` fields. A temporary outage returns 200 with `available: false`; it does not hide the brand. Availability can change before an order is submitted, so handle the ordering errors described above even if an earlier snapshot showed `available: true`.
+List responses include currency and the brand's full denomination spread, even when price filters are applied. Temporarily unavailable brands remain in list and detail responses with `available: false`; check this field before ordering.
 
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}]
 + Parameters
@@ -302,13 +297,12 @@ You can restrict the results list with any combination of price, currency, regio
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
-            + `expiry_period` (string, optional) - A human-readable brand expiry period. Omitted when no expiry period is provided.
-            + `available` (boolean, required) - Whether you can include this brand in a new order. Temporarily unavailable brands remain visible with false.
-            + `fund_currencyisocode` (string, required) - The three-letter currency code for this brand's denomination amounts.
-            + `variable_price` (boolean, required) - True for a variable-price range; false for fixed denominations.
-            + `min_price_in_cents` (number, optional) - The minimum reward value in fund_currencyisocode cents. Present only when variable_price is true.
-            + `max_price_in_cents` (number, optional) - The maximum reward value in fund_currencyisocode cents. Present only when variable_price is true.
-            + `allowed_prices_in_cents` (array[number], optional) - Currently offered fixed values in fund_currencyisocode cents, in ascending order. Present only when variable_price is false.
+            + `available` (boolean) - Whether the brand is currently available for new orders. Temporarily unavailable brands are still returned with false.
+            + `fund_currencyisocode` (string) - The three character currency code for this brand.
+            + `variable_price` (boolean) - true if this brand allows rewards to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents` will be set
+            + `min_price_in_cents` (number, optional) - Gives the minimum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `max_price_in_cents` (number, optional) - Gives the maximum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible reward values for non variable price brands.  Will be present in the response only if variable_price=false
         + info
             + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
         + `number_of_results` (number) - The number of results returned.
@@ -353,9 +347,6 @@ You can restrict the results list with any combination of price, currency, regio
             }
 
 ### retrieve brand [GET /brands/{brand_code}]
-
-A nonexistent code returns `ERROR_BRANDS_NO_SUCH_BRAND`. A brand that is not visible to your account returns `ERROR_BRANDS_BRAND_NOT_AVAILABLE`. Both errors use HTTP 422. A temporary outage instead returns 200 with `available: false`.
-
 + Parameters
     + `brand_code` (string, required) - Retrieve a single brand by brand_code.
 
@@ -368,21 +359,18 @@ A nonexistent code returns `ERROR_BRANDS_NO_SUCH_BRAND`. A brand that is not vis
 + Response 200
 
     + Attributes
-        + brand
+        + brands
             + `brand_code` (string) - A unique alphanumeric identifier for the brand.  Used as input to the `/campaign` endpoint when sending your reward offers.
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
-            + `expiry_period` (string, optional) - A human-readable brand expiry period. Omitted when no expiry period is provided.
-            + `available` (boolean, required) - Whether you can include this brand in a new order. A temporary outage leaves the brand visible with false.
-            + `description` (string) - A description of the brand's reward. Returned only by the single-brand endpoint.
-            + `embeddable` (boolean) - Whether the brand supports in-app delivery via `/embedded`. Returned only by the single-brand endpoint; check available separately before ordering.
-            + `regions` (array[number]) - Region ids from `/regions` in which this brand is offered. Returned only by the single-brand endpoint.
-            + `fund_currencyisocode` (string, required) - The three-letter currency code for this brand's denomination amounts.
-            + `variable_price` (boolean, required) - True for a variable-price range; false for fixed denominations.
-            + `min_price_in_cents` (number, optional) - The minimum reward value in `fund_currencyisocode` cents. Present only when `variable_price` is true.
-            + `max_price_in_cents` (number, optional) - The maximum reward value in `fund_currencyisocode` cents. Present only when `variable_price` is true.
-            + `allowed_prices_in_cents` (array[number], optional) - Currently offered fixed values in `fund_currencyisocode` cents, in ascending order. Present only when `variable_price` is false.
+            + `available` (boolean) - Whether the brand is currently available for new orders. Temporarily unavailable brands are still returned with false.
+            + `regions` (array[number]) - a list of region ids (corresponding to the `/regions` endpoint in which this brand is available
+            + `fund_currencyisocode` (string) - The three character currency code for this brand.
+            + `variable_price` (boolean) - true if this brand allows rewards to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents' will be set
+            + `min_price_in_cents` (number, optional) - Gives the minimum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `max_price_in_cents` (number, optional) - Gives the maximum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible reward values for non variable price brands.  Will be present in the response only if variable_price=false
 
         + info
             + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
@@ -394,13 +382,12 @@ A nonexistent code returns `ERROR_BRANDS_NO_SUCH_BRAND`. A brand that is not vis
                     "brand_code": "WHOLEFOODS",
                     "name": "Whole Foods Market",
                     "available": false,
-                    "description": "Whole Foods Market digital reward.",
                     "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png",
                      "regions": [
                         2
                     ],
                     "fund_currencyisocode": "USD",
-                    "embeddable": true,
+                    "inapp_available": true,
                     "variable_price": false,
                     "allowed_prices_in_cents": [
                         1000,

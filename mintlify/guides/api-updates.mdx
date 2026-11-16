@@ -5,9 +5,6 @@ description: "Updates to the Giftbit public API."
 
 ## Brand availability and denominations
 
-- Brand list and detail responses include `available`. A temporary outage leaves the brand visible with `available: false`.
-- The brands list includes `fund_currencyisocode` and `variable_price`, plus `allowed_prices_in_cents` for fixed-price brands or `min_price_in_cents` and `max_price_in_cents` for variable-price brands.
-- `description`, `regions`, and `embeddable` remain exclusive to single-brand responses.
-- New orders that explicitly select an unavailable brand return HTTP `422` with the existing `ERROR_CAMPAIGN_INVALID_BRAND` response. Full Catalog orders require at least one available brand supporting the region and amount.
-
-See the [brands reference](/api-reference/brands/list-brands) and [unavailable-brand handling](/guides/response-codes#unavailable-brands).
+- Brand list and detail responses include `available`; temporarily unavailable brands remain visible with `available: false`.
+- Brand list responses include `fund_currencyisocode`, `variable_price`, and `allowed_prices_in_cents` or `min_price_in_cents` / `max_price_in_cents`.
+- Orders that explicitly select an unavailable brand return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Full Catalog orders require an available brand supporting the region and amount.
