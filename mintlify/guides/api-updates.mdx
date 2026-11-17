@@ -8,4 +8,3 @@ description: "Updates to the Giftbit public API."
 - Brand list and detail responses include `available`. The list defaults to `available=true`; use `available=false` for temporarily unavailable brands or `available=all` for both states.
 - Brand list responses include `fund_currencyisocode`, `variable_price`, and `allowed_prices_in_cents` or `min_price_in_cents` / `max_price_in_cents`.
 - Orders that explicitly select an unavailable brand return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Full Catalog orders require an available brand supporting the region and amount.
-- Full Catalog rewards hide temporarily unavailable brands. Single-brand and tailored-choice rewards keep selected brands visible, but recipients cannot redeem an unavailable brand until availability is restored.
