@@ -273,7 +273,7 @@ Invalid `available` values, including empty or repeated values, return 400 with 
 
 ### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}{?available}]
 + Parameters
-    + available (enum[string], optional) - Filters by availability before pagination and applies to `total_count`. Existing account visibility rules still apply.
+    + available (enum[string], optional) - Filters by availability before pagination and applies to `total_count`.
         + Default: `true`
         + Members
             + `true` - Only available brands (also used when omitted).

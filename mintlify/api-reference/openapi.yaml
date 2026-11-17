@@ -100,7 +100,7 @@ paths:
         List responses include currency and the brand's full denomination spread,
         even when price filters are applied. By default, only brands with `available: true`
         are returned. Use `available=false` for temporarily unavailable brands or
-        `available=all` for both states. Existing account visibility rules still apply.
+        `available=all` for both states.
       parameters:
         - name: available
           in: query
