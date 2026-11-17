@@ -213,7 +213,7 @@ The Giftbit team makes heavy use of external APIs ourselves, and we know how fru
 
 ### Brand availability and denominations
 
-- Brand list and detail responses include `available`; temporarily unavailable brands remain visible with `available: false`.
+- Brand list and detail responses include `available`. The list defaults to `available=true`; use `available=false` for temporarily unavailable brands or `available=all` for both states.
 - Brand list responses include `fund_currencyisocode`, `variable_price`, and `allowed_prices_in_cents` or `min_price_in_cents` / `max_price_in_cents`.
 - Orders that explicitly select an unavailable brand return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Full Catalog orders require an available brand supporting the region and amount.
 
@@ -267,10 +267,18 @@ You can restrict the results list with any combination of price, currency, regio
 
 `GET /brands/{brand_code}` retrieves extended information about the specified brand.
 
-List responses include currency and the brand's full denomination spread, even when price filters are applied. Temporarily unavailable brands remain in list and detail responses with `available: false`; check this field before ordering.
+List responses include currency and the brand's full denomination spread, even when price filters are applied. By default, only brands with `available: true` are returned in the list. Use `GET /brands?available=false` for temporarily unavailable brands or `GET /brands?available=all` for both states. Detail responses still return otherwise visible outage brands with `available: false`.
 
-### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}]
+Invalid `available` values, including empty or repeated values, return 400 with `ERROR_BRANDS_INVALID_AVAILABILITY`.
+
+### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}{?available}]
 + Parameters
+    + available (enum[string], optional) - Filters by availability before pagination and applies to `total_count`. Existing account visibility rules still apply.
+        + Default: `true`
+        + Members
+            + `true` - Only available brands (also used when omitted).
+            + `false` - Only temporarily unavailable brands.
+            + `all` - Both availability states.
     + region (number, optional) - Limits the results to brands that are available in the provided region as per the `id` returned from the `/region` endpoint.
     + `max_price_in_cents` (number, optional) - Limits the results to brands that have an available reward option less than or equal to this value.
     + `min_price_in_cents` (number, optional) - Limits the results to brands that have an available reward option greater than or equal to this value.
@@ -297,7 +305,7 @@ List responses include currency and the brand's full denomination spread, even w
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
-            + `available` (boolean) - Whether the brand is currently available for new orders. Temporarily unavailable brands are still returned with false.
+            + `available` (boolean) - Whether the brand is currently available for new orders. Temporarily unavailable brands have false; list results include them only with `available=false` or `available=all`.
             + `fund_currencyisocode` (string) - The three character currency code for this brand.
             + `variable_price` (boolean) - true if this brand allows rewards to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents` will be set
             + `min_price_in_cents` (number, optional) - Gives the minimum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
@@ -328,7 +336,7 @@ List responses include currency and the brand's full denomination spread, even w
                     {
                         "brand_code": "WHOLEFOODS",
                         "name": "Whole Foods Market",
-                        "available": false,
+                        "available": true,
                         "fund_currencyisocode": "USD",
                         "variable_price": false,
                         "allowed_prices_in_cents": [1000, 2500, 5000, 10000],
@@ -345,6 +353,17 @@ List responses include currency and the brand's full denomination spread, even w
                "offset":0,
                "total_count":2
             }
+
++ Response 400 (application/json)
+
+        {
+            "error": {
+                "code": "ERROR_BRANDS_INVALID_AVAILABILITY",
+                "name": "Invalid availability filter",
+                "message": "The available query parameter must be true, false, or all."
+            },
+            "status": 400
+        }
 
 ### retrieve brand [GET /brands/{brand_code}]
 + Parameters

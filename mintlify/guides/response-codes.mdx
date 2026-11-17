@@ -51,6 +51,8 @@ To assist with your programmatic error handling and troubleshooting, all error r
 <AccordionGroup>
   <Accordion title="400 — Malformed request">
       Error due to a malformed request body such as broken JSON or missing required element. Requires fixing up the request body.
+
+      An invalid `available` query parameter on `GET /brands` returns `ERROR_BRANDS_INVALID_AVAILABILITY`. Use `true`, `false`, or `all`; empty or repeated values are invalid.
   </Accordion>
   <Accordion title="401 / 403 — Authentication or authorization failure">
     Generally related to a missing or invalid API key. Ensure you are [authenticating](/guides/authentication) correctly.

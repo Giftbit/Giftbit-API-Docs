@@ -98,9 +98,21 @@ paths:
         The results can be paged.
 
         List responses include currency and the brand's full denomination spread,
-        even when price filters are applied. Temporarily unavailable brands remain
-        in the response with `available: false`; check this field before ordering.
+        even when price filters are applied. By default, only brands with `available: true`
+        are returned. Use `available=false` for temporarily unavailable brands or
+        `available=all` for both states. Existing account visibility rules still apply.
       parameters:
+        - name: available
+          in: query
+          required: false
+          description: |
+            Filters by availability. Omitted or `true` returns only available brands;
+            `false` returns only temporarily unavailable brands; `all` returns both.
+            Applied before pagination; `total_count` counts matching brands.
+          schema:
+            type: string
+            enum: ["true", "false", "all"]
+            default: "true"
         - name: region
           in: query
           required: false
@@ -189,7 +201,7 @@ paths:
                       independent reseller of Amazon.com Gift Cards.
                   - brand_code: WHOLEFOODS
                     name: Whole Foods Market
-                    available: false
+                    available: true
                     fund_currencyisocode: USD
                     variable_price: false
                     allowed_prices_in_cents: [1000, 2500, 5000, 10000]
@@ -202,6 +214,18 @@ paths:
                 limit: 20
                 offset: 0
                 total_count: 2
+        "400":
+          description: Invalid available query parameter. Use true, false, or all; empty or repeated values are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: ERROR_BRANDS_INVALID_AVAILABILITY
+                  name: Invalid availability filter
+                  message: The available query parameter must be true, false, or all.
+                status: 400
 
   /brands/{brand_code}:
     get:
@@ -1211,7 +1235,7 @@ components:
           description: A full, secure (https) URL to the brand's image.
         available:
           type: boolean
-          description: Whether the brand is currently available for new orders. Temporarily unavailable brands are still returned with `false`.
+          description: Whether the brand is currently available for new orders. Temporarily unavailable brands have `false`; list results include them only with `available=false` or `available=all`.
         fund_currencyisocode:
           type: string
         variable_price:
