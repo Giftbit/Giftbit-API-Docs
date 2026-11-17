@@ -209,14 +209,6 @@ When your integration is ready to launch, sign up at www.giftbit.com and contact
 
 The Giftbit team makes heavy use of external APIs ourselves, and we know how frustrating it can be when the documentation is unclear or doesn't match the actual API behaviour. If you find any such problems with ours, don't hesitate to let us know via testbed@giftbit.com.
 
-## API updates
-
-### Brand availability and denominations
-
-- Brand list and detail responses include `available`. The list defaults to `available=true`; use `available=false` for temporarily unavailable brands or `available=all` for both states.
-- Brand list responses include `fund_currencyisocode`, `variable_price`, and `allowed_prices_in_cents` or `min_price_in_cents` / `max_price_in_cents`.
-- Orders that explicitly select an unavailable brand return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Full Catalog orders require an available brand supporting the region and amount.
-
 ## Ping [/ping]
 `GET /ping` provides a way to test your authentication and check the health of the Giftbit API.
 
