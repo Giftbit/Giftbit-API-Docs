@@ -87,6 +87,10 @@ Example:
 
 ***422:*** The request is formatted correctly but one or more parameters in the body or URL are not valid. An example would be trying to create an order with a reward value outside of the allowed range for that brand. Ensure the request parameters are valid.
 
+When you explicitly select a temporarily unavailable brand with `brand_code` or `brand_codes`, `/campaign`, `/direct_links`, and `/embedded` return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Availability can change before submission, so handle this error even if `GET /brands` previously returned `available: true`.
+
+Full Catalog orders require at least one available brand supporting the requested region and amount. Otherwise, the API returns 422 with `ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT` and the message `No rewards available at the given 'price_in_cents' for the selected region.`
+
 ***429:*** Too many requests. The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. It is recommended that if you do recieve a 429 response, your code automatically retry your request with a backoff delay. Note that you can simulate this condition in the Testbed environment to assist with your error handling development without actually producing a high request rate by passing a `SIMULATE-RATELIMIT` header with a value of `true` for any request. If you feel you are being frequently rate limited in a valid usage pattern, please contact support.
 
 ***5xx:*** An unexpected error on the Giftbit side. Retry the request, and if failures persist contact support.  Note that the response body format in the 5xx case may not match the common error response format described.
@@ -255,8 +259,18 @@ You can restrict the results list with any combination of price, currency, regio
 
 `GET /brands/{brand_code}` retrieves extended information about the specified brand.
 
-### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}]
+List responses include currency and the brand's full denomination spread, even when price filters are applied. By default, only brands with `available: true` are returned in the list. Use `GET /brands?available=false` for temporarily unavailable brands or `GET /brands?available=all` for both states. Detail responses still return otherwise visible outage brands with `available: false`.
+
+Invalid `available` values, including empty or repeated values, return 400 with `ERROR_BRANDS_INVALID_AVAILABILITY`.
+
+### list brands [GET /brands{?region}{?max_price_in_cents}{?min_price_in_cents}{?currencyisocode}{?search}{?limit}{?offset}{?embeddable}{?available}]
 + Parameters
+    + available (enum[string], optional) - Filters by availability before pagination and applies to `total_count`.
+        + Default: `true`
+        + Members
+            + `true` - Only available brands (also used when omitted).
+            + `false` - Only temporarily unavailable brands.
+            + `all` - Both availability states.
     + region (number, optional) - Limits the results to brands that are available in the provided region as per the `id` returned from the `/region` endpoint.
     + `max_price_in_cents` (number, optional) - Limits the results to brands that have an available reward option less than or equal to this value.
     + `min_price_in_cents` (number, optional) - Limits the results to brands that have an available reward option greater than or equal to this value.
@@ -283,6 +297,12 @@ You can restrict the results list with any combination of price, currency, regio
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
+            + `available` (boolean) - Whether the brand is currently available for new orders. Temporarily unavailable brands have false; list results include them only with `available=false` or `available=all`.
+            + `fund_currencyisocode` (string) - The three character currency code for this brand.
+            + `variable_price` (boolean) - true if this brand allows rewards to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents` will be set
+            + `min_price_in_cents` (number, optional) - Gives the minimum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `max_price_in_cents` (number, optional) - Gives the maximum possible reward value for variable price brands.  Will be present in the response only if variable_price=true
+            + `allowed_prices_in_cents` (array[number], optional) - Gives the possible reward values for non variable price brands.  Will be present in the response only if variable_price=false
         + info
             + `code` (string) - A status code for the request. Possible values: `INFO_BRANDS_RETRIEVED`
         + `number_of_results` (number) - The number of results returned.
@@ -297,12 +317,21 @@ You can restrict the results list with any combination of price, currency, regio
                     {
                         "brand_code": "AMZNCOM",
                         "name": "Amazon.com",
+                        "available": true,
+                        "fund_currencyisocode": "USD",
+                        "variable_price": true,
+                        "min_price_in_cents": 100,
+                        "max_price_in_cents": 50000,
                         "image_url": "https://uploadedimages.giftbit.com/550/amazon-30ec8f7a-616a-46aa-aa3f-cafbca10bddc.jpg",
                         "disclaimer": "Amazon.com Gift Cards (\"GCs\") sold by Giftbit Inc., an authorized and independent reseller of Amazon.com Gift Cards. Except as required by law, GCs cannot be transferred for value or redeemed for cash. GCs may be used only for purchases of eligible goods at Amazon.com or certain of its affiliated websites. For complete terms and conditions, see http://www.amazon.com/gc-legal. GCs are issued by ACI Gift Cards, Inc., a Washington corporation. All Amazon ®, ™ & © are IP of Amazon.com, Inc. or its affiliates. No expiration date or service fees."
                     },
                     {
                         "brand_code": "WHOLEFOODS",
                         "name": "Whole Foods Market",
+                        "available": true,
+                        "fund_currencyisocode": "USD",
+                        "variable_price": false,
+                        "allowed_prices_in_cents": [1000, 2500, 5000, 10000],
                         "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png"
                     }
                 ],
@@ -316,6 +345,17 @@ You can restrict the results list with any combination of price, currency, regio
                "offset":0,
                "total_count":2
             }
+
++ Response 400 (application/json)
+
+        {
+            "error": {
+                "code": "ERROR_BRANDS_INVALID_AVAILABILITY",
+                "name": "Invalid availability filter",
+                "message": "The available query parameter must be true, false, or all."
+            },
+            "status": 400
+        }
 
 ### retrieve brand [GET /brands/{brand_code}]
 + Parameters
@@ -335,6 +375,7 @@ You can restrict the results list with any combination of price, currency, regio
             + `name` (string) - The name of the Brand.
             + `disclaimer` (string, optional) - Certain brands have disclaimer text that must appear along with the brand when displayed.  This field will be omitted if there is no disclaimer for the given brand.
             + `image_url`  - A full URL to the brand's image to display.  Will always be a secure (https) image URL.
+            + `available` (boolean) - Whether the brand is currently available for new orders. Temporarily unavailable brands are still returned with false.
             + `regions` (array[number]) - a list of region ids (corresponding to the `/regions` endpoint in which this brand is available
             + `fund_currencyisocode` (string) - The three character currency code for this brand.
             + `variable_price` (boolean) - true if this brand allows rewards to be created of any value within a range. False if only a set of fixed prices is allowed.  If true, `min_price_in_cents` and `max_price_in_cents` will be set in the response.  If false, `allowed_prices_in_cents' will be set
@@ -351,6 +392,7 @@ You can restrict the results list with any combination of price, currency, regio
                 "brand": {
                     "brand_code": "WHOLEFOODS",
                     "name": "Whole Foods Market",
+                    "available": false,
                     "image_url": "https://uploadedimages.giftbit.com/wholefoods/wholefoodsgiftbit-f629cfa4-c7f1-4c6f-9a67-f8ee144b8db7.png",
                      "regions": [
                         2
