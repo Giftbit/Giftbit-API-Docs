@@ -51,8 +51,6 @@ To assist with your programmatic error handling and troubleshooting, all error r
 <AccordionGroup>
   <Accordion title="400 — Malformed request">
       Error due to a malformed request body such as broken JSON or missing required element. Requires fixing up the request body.
-
-      An invalid `available` query parameter on `GET /brands` returns `ERROR_BRANDS_INVALID_AVAILABILITY`. Use `true`, `false`, or `all`; empty or repeated values are invalid.
   </Accordion>
   <Accordion title="401 / 403 — Authentication or authorization failure">
     Generally related to a missing or invalid API key. Ensure you are [authenticating](/guides/authentication) correctly.
@@ -62,10 +60,6 @@ To assist with your programmatic error handling and troubleshooting, all error r
   </Accordion>
   <Accordion title="422 — Invalid parameters">
     The request is formatted correctly, but one or more parameters in the body or URL are not valid. An example would be trying to create an order with a reward value outside of the allowed range for that brand. Ensure the request parameters are valid.
-
-    When you explicitly select a temporarily unavailable brand with `brand_code` or `brand_codes`, `/campaign`, `/direct_links`, and `/embedded` return 422 with `ERROR_CAMPAIGN_INVALID_BRAND`. Availability can change before submission, so handle this error even if `GET /brands` previously returned `available: true`.
-
-    Full Catalog orders require at least one available brand supporting the requested region and amount. Otherwise, the API returns 422 with `ERROR_CAMPAIGN_INVALID_MARKETPLACE_GIFT` and the message `No rewards available at the given 'price_in_cents' for the selected region.`
   </Accordion>
   <Accordion title="429 — Too many requests">
     The Giftbit API uses adaptive rate limiting that allows burstiness and should generally not interfere with valid usage patterns. If you receive a `429` response, your code should automatically retry the request with a backoff delay.
