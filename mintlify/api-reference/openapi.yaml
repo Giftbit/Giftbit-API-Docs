@@ -393,7 +393,7 @@ paths:
                   gift_template: XDKHE
                   id: clientProvidedGiftId_abc123
         "422":
-          description: One or more parameters are not valid, including a temporarily unavailable brand.
+          description: One or more parameters are not valid.
           content:
             application/json:
               schema:
@@ -605,19 +605,6 @@ paths:
                   expiry: "2025-01-01"
                   id: clientProvidedId_abc123
 
-        "422":
-          description: Invalid brand or brand/price combination, including a temporarily unavailable brand.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error:
-                  code: ERROR_CAMPAIGN_INVALID_BRAND
-                  name: Invalid Brand or Brand/Price combination
-                  message: "brand_code: itunesus - price_in_cents: 2500 - The brand_code provided is not valid or not available for the given price"
-                status: 422
-
   /embedded:
     post:
       tags: [Embedded Rewards]
@@ -682,7 +669,7 @@ paths:
                   price_in_cents: 2500
                 gift_link: https://testbedapp.giftbit.com/embeddedRewards/index/5ac9cea1234abcf5be3592ad0fe7cc76
         "422":
-          description: Invalid brand or brand/price combination, including a temporarily unavailable brand.
+          description: Invalid brand or brand/price combination.
           content:
             application/json:
               schema:
